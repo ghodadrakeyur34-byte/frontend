@@ -79,17 +79,23 @@ export default function HomeView({ listings, onSearch, userLocation, onRequestLo
           <img src="/assets/hero_bg.png" alt="Modern Residential Neighborhood" />
         </div>
         <div className="hero-content fade-in">
-          <h1>{t('hero.findYourDream')} <span>{t('hero.property')}</span></h1>
-          <form className="hero-search" id="heroSearch" onSubmit={handleSearchSubmit}>
+          <div className="inspira-badge" style={{ marginBottom: '1.25rem' }}>
+            <span className="pulse-dot"></span>
+            <span>✦ Premier Property Portal</span>
+          </div>
+          <h1 className="gradient-text">
+            {t('hero.findYourDream')} <span className="gradient-text">{t('hero.property')}</span>
+          </h1>
+          <form className="hero-search glass-card" id="heroSearch" onSubmit={handleSearchSubmit}>
             <select
               id="heroLocation"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
             >
               <option value="">{t('hero.allCities')}</option>
-              <option value="Veraval">Veraval(વેરાવળ)</option>
-              <option value="Una">Una(ઉના)</option>
-              <option value="Junagadh">Junagadh(જુનાગઢ)</option>
+              <option value="Veraval">Veraval (વેરાવળ)</option>
+              <option value="Una">Una (ઉના)</option>
+              <option value="Junagadh">Junagadh (જુનાગઢ)</option>
             </select>
             <div className="divider"></div>
             <select
@@ -101,20 +107,20 @@ export default function HomeView({ listings, onSearch, userLocation, onRequestLo
               <option value="house">🏠 {t('common.house')}</option>
               <option value="plot">📐 {t('common.plot')}</option>
             </select>
-            <button type="submit" className="btn-search">{t('hero.search')}</button>
+            <button type="submit" className="btn-search btn-shimmer">{t('hero.search')}</button>
           </form>
           <div className="action-btns">
-            <button className="action-btn buy" onClick={() => window.location.hash = '#browse'}>
+            <button className="action-btn buy btn-shimmer" onClick={() => window.location.hash = '#browse'}>
               {t('hero.wantToBuy')}
             </button>
-            <button className="action-btn sell" onClick={() => window.location.hash = '#sell'}>
+            <button className="action-btn sell btn-shimmer" onClick={() => window.location.hash = '#sell'}>
               {t('hero.wantToSell')}
             </button>
           </div>
         </div>
       </section>
 
-      <div className="stats-bar">
+      <div className="stats-bar glass-card">
         <StatItem target={150} label={t('stats.listings')} />
         <StatItem target={3} label={t('stats.cities')} />
         <StatItem target={1200} label={t('stats.happyCustomers')} />

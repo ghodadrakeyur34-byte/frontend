@@ -43,9 +43,9 @@ export default function Navbar({ currentHash, currentUser, onLogout, onShowLogin
   };
 
   return (
-    <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`} id="navbar">
+    <nav className={`navbar glass-card ${isScrolled ? 'scrolled' : ''}`} id="navbar">
       <a onClick={() => handleNavClick('#home')} className="logo" style={{ cursor: 'pointer' }}>
-        Mari<span>Milkat</span>
+        <span className="gradient-text">Mari</span><span style={{ color: 'var(--text)' }}>Milkat</span>
       </a>
       <ul className={`nav-links ${isOpen ? 'open' : ''}`} id="navLinks">
         <li>

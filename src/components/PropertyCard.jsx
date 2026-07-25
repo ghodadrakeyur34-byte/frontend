@@ -17,7 +17,7 @@ export default function PropertyCard({ listing }) {
   );
 
   return (
-    <div className="prop-card" onClick={handleCardClick}>
+    <div className="prop-card glass-card" onClick={handleCardClick}>
       <div className="card-img">
         {imgElement}
         <span className="badge">
@@ -25,7 +25,7 @@ export default function PropertyCard({ listing }) {
         </span>
       </div>
       <div className="card-body">
-        <div className="price">{formatPrice(price)}</div>
+        <div className="price gradient-text">{formatPrice(price)}</div>
         <div className="title">{title}</div>
         <div className="location">📍 {area}, {city}</div>
         <div className="meta">
