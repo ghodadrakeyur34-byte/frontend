@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { animate } from 'animejs';
 import { formatPrice, timeAgo } from '../utils';
 
 export default function PropertyCard({ listing }) {
@@ -10,6 +11,24 @@ export default function PropertyCard({ listing }) {
     window.location.hash = `#detail/${id}`;
   };
 
+  const handleMouseEnter = (e) => {
+    animate(e.currentTarget, {
+      translateY: -6,
+      scale: 1.02,
+      duration: 350,
+      ease: 'outCubic',
+    });
+  };
+
+  const handleMouseLeave = (e) => {
+    animate(e.currentTarget, {
+      translateY: 0,
+      scale: 1.0,
+      duration: 350,
+      ease: 'outCubic',
+    });
+  };
+
   const imgElement = images && images.length > 0 ? (
     <img src={images[0]} alt={title} />
   ) : (
@@ -17,7 +36,12 @@ export default function PropertyCard({ listing }) {
   );
 
   return (
-    <div className="prop-card glass-card" onClick={handleCardClick}>
+    <div
+      className="prop-card glass-card"
+      onClick={handleCardClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <div className="card-img">
         {imgElement}
         <span className="badge">

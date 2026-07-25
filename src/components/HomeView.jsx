@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
+import { animate, stagger } from 'animejs';
 import PropertyCard from './PropertyCard';
 import PropertyMap from './PropertyMap';
 
@@ -11,6 +12,24 @@ export default function HomeView({ listings, onSearch, userLocation, onRequestLo
   const [type, setType] = useState('');
 
   useEffect(() => {
+    // Anime.js v4 staggered entrance animation for Hero elements
+    animate('.hero-content > *', {
+      translateY: [35, 0],
+      opacity: [0, 1],
+      ease: 'outExpo',
+      duration: 1100,
+      delay: stagger(160),
+    });
+
+    // Anime.js v4 animation for section headers
+    animate('.section-header', {
+      translateY: [25, 0],
+      opacity: [0, 1],
+      ease: 'outCubic',
+      duration: 900,
+      delay: 200,
+    });
+
     // Scroll fade-in animation
     const observer = new IntersectionObserver(
       (entries) => {
@@ -27,15 +46,8 @@ export default function HomeView({ listings, onSearch, userLocation, onRequestLo
     const fadeElements = document.querySelectorAll('.fade-in');
     fadeElements.forEach((el) => observer.observe(el));
 
-    // Force hero items to fade in shortly after render
-    const timer = setTimeout(() => {
-      const heroFadeElements = document.querySelectorAll('.hero .fade-in');
-      heroFadeElements.forEach((el) => el.classList.add('visible'));
-    }, 100);
-
     return () => {
       observer.disconnect();
-      clearTimeout(timer);
     };
   }, []);
 
