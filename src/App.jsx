@@ -10,6 +10,7 @@ import MyListingsView from './components/MyListingsView';
 import LoginPage from './components/LoginPage';
 import LocationModal from './components/LocationModal';
 import AdminPanel from './components/AdminPanel';
+import HelpDeskView from './components/HelpDeskView';
 import { canChangePrice } from './utils';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
@@ -334,6 +335,9 @@ export default function App() {
           userLocation={userLocation}
         />
       );
+    }
+    if (hash === '#help') {
+      return <HelpDeskView userLocation={userLocation} />;
     }
     if (hash === '#browse') {
       return (

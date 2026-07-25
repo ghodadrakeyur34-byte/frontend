@@ -13,6 +13,7 @@ export default function Footer({ currentUser }) {
       <div className="footer-links">
         <a onClick={() => handleNavClick('#home')} style={{ cursor: 'pointer' }}>{t('nav.home')}</a>
         <a onClick={() => handleNavClick('#browse')} style={{ cursor: 'pointer' }}>{t('nav.browse')}</a>
+        <a onClick={() => handleNavClick('#help')} style={{ cursor: 'pointer' }}>📞 {t('nav.helpDesk', 'Help Desk')}</a>
         {currentUser && (
           <a onClick={() => handleNavClick('#sell')} style={{ cursor: 'pointer' }}>{t('nav.postAd')}</a>
         )}

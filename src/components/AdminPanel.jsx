@@ -1067,6 +1067,126 @@ function Categories({ token, onUnauthorized }) {
   );
 }
 
+// ===== SITE & HELP DESK SETTINGS =====
+function Settings({ token, onUnauthorized }) {
+  const [settings, setSettings] = useState({
+    helpMobile: '',
+    helpEmail: '',
+    helpHours: '',
+  });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState({ type: '', text: '' });
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        setSettings(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching settings:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setMsg({ type: '', text: '' });
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': token,
+        },
+        body: JSON.stringify(settings),
+      });
+
+      const data = await res.json();
+      if (res.status === 401 || res.status === 403) {
+        onUnauthorized();
+        return;
+      }
+
+      if (!res.ok) throw new Error(data.error || 'Failed to update settings');
+
+      setSettings(data.settings);
+      setMsg({ type: 'success', text: '✓ Help desk contact details updated successfully!' });
+    } catch (err) {
+      setMsg({ type: 'error', text: err.message });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <div className="admin-loading">Loading site settings…</div>;
+
+  return (
+    <div className="admin-settings-view">
+      <h2 className="admin-page-title">📞 Help Desk & Contact Settings</h2>
+      <p className="admin-muted" style={{ marginBottom: '2rem' }}>
+        Change the mobile helpline number, support email, and operating hours shown on the Help Desk page.
+      </p>
+
+      {msg.text && (
+        <div className={`admin-${msg.type === 'success' ? 'success' : 'error'}`} style={{ marginBottom: '1.5rem', padding: '1rem', borderRadius: 'var(--r-md)' }}>
+          {msg.text}
+        </div>
+      )}
+
+      <form onSubmit={handleSave} style={{ maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div className="admin-field">
+          <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}>Helpline Mobile Number</label>
+          <input
+            type="text"
+            required
+            value={settings.helpMobile || ''}
+            onChange={e => setSettings({ ...settings, helpMobile: e.target.value })}
+            placeholder="+91 98765 43210"
+            style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg2)', color: '#fff' }}
+          />
+        </div>
+
+        <div className="admin-field">
+          <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}>Support Email Address</label>
+          <input
+            type="email"
+            required
+            value={settings.helpEmail || ''}
+            onChange={e => setSettings({ ...settings, helpEmail: e.target.value })}
+            placeholder="support@marimilkat.com"
+            style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg2)', color: '#fff' }}
+          />
+        </div>
+
+        <div className="admin-field">
+          <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}>Support Operating Hours</label>
+          <input
+            type="text"
+            required
+            value={settings.helpHours || ''}
+            onChange={e => setSettings({ ...settings, helpHours: e.target.value })}
+            placeholder="Mon - Sat: 9:00 AM - 8:00 PM"
+            style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg2)', color: '#fff' }}
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="admin-login-btn"
+          disabled={saving}
+          style={{ padding: '0.9rem', width: '220px', background: 'var(--accent)', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+        >
+          {saving ? 'Saving Changes…' : '💾 Save Contact Number'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
 // ===== MAIN ADMIN PANEL =====
 export default function AdminPanel() {
   const [admin, setAdmin] = useState(getStoredAdmin);
@@ -1095,6 +1215,7 @@ export default function AdminPanel() {
     { key: 'users', icon: '👥', label: 'Users' },
     { key: 'reports', icon: '🚩', label: 'Reports' },
     { key: 'categories', icon: '📂', label: 'Categories' },
+    { key: 'settings', icon: '📞', label: 'Help Desk Settings' },
   ];
 
   const renderView = () => {
@@ -1104,6 +1225,7 @@ export default function AdminPanel() {
       case 'users': return <Users token={admin.token} onUnauthorized={handleLogout} />;
       case 'reports': return <Reports token={admin.token} onUnauthorized={handleLogout} />;
       case 'categories': return <Categories token={admin.token} onUnauthorized={handleLogout} />;
+      case 'settings': return <Settings token={admin.token} onUnauthorized={handleLogout} />;
       default: return <Dashboard token={admin.token} onUnauthorized={handleLogout} />;
     }
   };
