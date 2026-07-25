@@ -4458,6 +4458,110 @@ footer a:hover {
 
   .admin-field-inline {
     flex-direction: column;
-    align-items: stretch;
+  }
+}
+
+/* ===== COMPREHENSIVE MOBILE RESPONSIVENESS ===== */
+
+@media (max-width: 768px) {
+  /* Global Layout */
+  .hero-content h1 {
+    font-size: 2.25rem !important;
+    line-height: 1.2;
+  }
+
+  /* Hero Search Form */
+  .hero-search {
+    flex-direction: column;
+    padding: 10px;
+    gap: 8px;
+    background: rgba(17, 24, 39, 0.9) !important;
+  }
+
+  .hero-search select,
+  .hero-search input {
+    width: 100%;
+    border-radius: var(--r-sm) !important;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .hero-search .divider {
+    display: none;
+  }
+
+  .hero-search .btn-search {
+    width: 100%;
+    padding: 0.9rem;
+  }
+
+  /* Hero Action Buttons */
+  .action-btns {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.75rem;
+  }
+
+  .action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Layout Grids */
+  .browse-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .detail-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .mylistings-stats {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .listings-grid,
+  .results-grid,
+  .mylistings-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Property Detail Specs */
+  .specs-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Floating Help Desk Widget on Mobile */
+  a[href="#help"].glass-card {
+    bottom: 16px !important;
+    right: 16px !important;
+    padding: 8px 14px !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Extra Small Mobile Devices */
+  .hero-content h1 {
+    font-size: 1.85rem !important;
+  }
+
+  .navbar {
+    padding: 0.75rem 1rem !important;
+  }
+
+  .logo {
+    font-size: 1.25rem !important;
+  }
+
+  .prop-card .card-body {
+    padding: 1rem !important;
+  }
+
+  .price {
+    font-size: 1.25rem !important;
+  }
+
+  .mylistings-stats {
+    grid-template-columns: 1fr !important;
   }
 }
