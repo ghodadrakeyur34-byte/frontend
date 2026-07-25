@@ -408,6 +408,36 @@ export default function App() {
       </div>
       <Footer currentUser={currentUser} />
 
+      {/* Persistent Floating Help Desk Button on Every Page */}
+      {currentHash !== '#help' && (
+        <a
+          href="#help"
+          className="glass-card btn-shimmer"
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            zIndex: 999,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '10px 18px',
+            borderRadius: '9999px',
+            background: 'rgba(17, 24, 39, 0.85)',
+            border: '1px solid rgba(226, 184, 87, 0.4)',
+            color: 'var(--accent)',
+            fontWeight: '600',
+            fontSize: '0.9rem',
+            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.4)',
+            textDecoration: 'none',
+            backdropFilter: 'blur(16px)',
+            cursor: 'pointer'
+          }}
+        >
+          <span className="pulse-dot"></span>
+          <span>📞 Help Desk</span>
+        </a>
+      )}
 
       <LocationModal
         isOpen={showLocationModal}

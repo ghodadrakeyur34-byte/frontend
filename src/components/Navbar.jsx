@@ -64,14 +64,6 @@ export default function Navbar({ currentHash, currentUser, onLogout, onShowLogin
             {t('nav.browse')}
           </a>
         </li>
-        <li>
-          <a
-            onClick={() => handleNavClick('#help')}
-            className={currentHash === '#help' ? 'active' : ''}
-          >
-            📞 {t('nav.helpDesk', 'Help Desk')}
-          </a>
-        </li>
         {currentUser && (
           <li>
             <a
