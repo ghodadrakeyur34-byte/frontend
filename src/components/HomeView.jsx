@@ -4,33 +4,6 @@ import { useAutoAnimate } from '@formkit/auto-animate/react';
 import PropertyCard from './PropertyCard';
 import PropertyMap from './PropertyMap';
 
-function StatItem({ target, label }) {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    let current = 0;
-    const step = Math.ceil(target / 40);
-    const timer = setInterval(() => {
-      current += step;
-      if (current >= target) {
-        setCount(target);
-        clearInterval(timer);
-      } else {
-        setCount(current);
-      }
-    }, 30);
-
-    return () => clearInterval(timer);
-  }, [target]);
-
-  return (
-    <div className="stat">
-      <div className="num">{count}+</div>
-      <div className="label">{label}</div>
-    </div>
-  );
-}
-
 export default function HomeView({ listings, onSearch, userLocation, onRequestLocation, currentUser }) {
   const { t } = useTranslation();
   const [parent] = useAutoAnimate();
@@ -119,13 +92,6 @@ export default function HomeView({ listings, onSearch, userLocation, onRequestLo
           </div>
         </div>
       </section>
-
-      <div className="stats-bar glass-card">
-        <StatItem target={150} label={t('stats.listings')} />
-        <StatItem target={3} label={t('stats.cities')} />
-        <StatItem target={1200} label={t('stats.happyCustomers')} />
-        <StatItem target={50} label={t('stats.dailyVisitors')} />
-      </div>
 
       <section className="recent" id="recentSection">
         <div className="section-header">
