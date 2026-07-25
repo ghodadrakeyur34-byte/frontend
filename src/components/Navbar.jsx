@@ -64,14 +64,16 @@ export default function Navbar({ currentHash, currentUser, onLogout, onShowLogin
             {t('nav.browse')}
           </a>
         </li>
-        <li>
-          <a
-            onClick={() => handleNavClick('#sell')}
-            className={currentHash === '#sell' ? 'active' : ''}
-          >
-            {t('nav.postAd')}
-          </a>
-        </li>
+        {currentUser && (
+          <li>
+            <a
+              onClick={() => handleNavClick('#sell')}
+              className={currentHash === '#sell' ? 'active' : ''}
+            >
+              {t('nav.postAd')}
+            </a>
+          </li>
+        )}
         {currentUser && (
           <li>
             <a

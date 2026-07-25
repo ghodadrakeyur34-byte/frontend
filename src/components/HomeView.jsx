@@ -31,7 +31,7 @@ function StatItem({ target, label }) {
   );
 }
 
-export default function HomeView({ listings, onSearch, userLocation, onRequestLocation }) {
+export default function HomeView({ listings, onSearch, userLocation, onRequestLocation, currentUser }) {
   const { t } = useTranslation();
   const [parent] = useAutoAnimate();
   const [location, setLocation] = useState('');
@@ -115,9 +115,11 @@ export default function HomeView({ listings, onSearch, userLocation, onRequestLo
             <button className="action-btn buy btn-shimmer" onClick={() => window.location.hash = '#browse'}>
               {t('hero.wantToBuy')}
             </button>
-            <button className="action-btn sell btn-shimmer" onClick={() => window.location.hash = '#sell'}>
-              {t('hero.wantToSell')}
-            </button>
+            {currentUser && (
+              <button className="action-btn sell btn-shimmer" onClick={() => window.location.hash = '#sell'}>
+                {t('hero.wantToSell')}
+              </button>
+            )}
           </div>
         </div>
       </section>

@@ -322,6 +322,10 @@ export default function App() {
       );
     }
     if (hash === '#sell') {
+      if (!currentUser) {
+        navigateToLogin('#sell');
+        return null;
+      }
       return (
         <SellView
           currentUser={currentUser}
@@ -375,6 +379,7 @@ export default function App() {
         onSearch={handleHeroSearch}
         userLocation={userLocation}
         onRequestLocation={handleRequestLocation}
+        currentUser={currentUser}
       />
     );
   };
@@ -397,7 +402,8 @@ export default function App() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {renderView()}
       </div>
-      <Footer />
+      <Footer currentUser={currentUser} />
+
 
       <LocationModal
         isOpen={showLocationModal}
