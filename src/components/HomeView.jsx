@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAutoAnimate } from '@formkit/auto-animate/react';
 import PropertyCard from './PropertyCard';
 import PropertyMap from './PropertyMap';
 
@@ -32,6 +33,7 @@ function StatItem({ target, label }) {
 
 export default function HomeView({ listings, onSearch, userLocation, onRequestLocation }) {
   const { t } = useTranslation();
+  const [parent] = useAutoAnimate();
   const [location, setLocation] = useState('');
   const [type, setType] = useState('');
 
@@ -132,7 +134,7 @@ export default function HomeView({ listings, onSearch, userLocation, onRequestLo
           <h2>{t('recent.title')}</h2>
           <p>{t('recent.subtitle')}</p>
         </div>
-        <div className="listings-grid" id="recentGrid">
+        <div className="listings-grid" id="recentGrid" ref={parent}>
           {recentListings.map((listing) => (
             <PropertyCard key={listing.id} listing={listing} />
           ))}

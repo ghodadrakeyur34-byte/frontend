@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAutoAnimate } from '@formkit/auto-animate/react';
 import PropertyCard from './PropertyCard';
 import PropertyMap from './PropertyMap';
 
 export default function BrowseView({ listings, initialFilters, clearInitialFilters, userLocation, onRequestLocation }) {
   const { t } = useTranslation();
+  const [parent] = useAutoAnimate();
   const [filterType, setFilterType] = useState('');
   const [filterMin, setFilterMin] = useState('');
   const [filterMax, setFilterMax] = useState('');
@@ -158,7 +160,7 @@ export default function BrowseView({ listings, initialFilters, clearInitialFilte
                 />
               </div>
             ) : filteredListings.length > 0 ? (
-              <div className="results-grid" id="resultsGrid">
+              <div className="results-grid" id="resultsGrid" ref={parent}>
                 {filteredListings.map((listing) => (
                   <PropertyCard key={listing.id} listing={listing} />
                 ))}
