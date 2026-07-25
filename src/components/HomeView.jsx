@@ -81,10 +81,6 @@ export default function HomeView({ listings, onSearch, userLocation, onRequestLo
           <img src="/assets/hero_bg.png" alt="Modern Residential Neighborhood" />
         </div>
         <div className="hero-content fade-in">
-          <div className="inspira-badge" style={{ marginBottom: '1.25rem' }}>
-            <span className="pulse-dot"></span>
-            <span>✦ Premier Property Portal</span>
-          </div>
           <h1 className="gradient-text">
             {t('hero.findYourDream')} <span className="gradient-text">{t('hero.property')}</span>
           </h1>
