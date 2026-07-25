@@ -11,6 +11,8 @@ import LoginPage from './components/LoginPage';
 import LocationModal from './components/LocationModal';
 import AdminPanel from './components/AdminPanel';
 import { canChangePrice } from './utils';
+import Lenis from 'lenis';
+import 'lenis/dist/lenis.css';
 
 const USER_KEY = 'propbazaar_user';
 
@@ -39,6 +41,31 @@ export default function App() {
 
   // Track where user was before they were redirected to login
   const [loginRedirect, setLoginRedirect] = useState(null);
+
+  // Initialize Lenis smooth scroll animation
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 1,
+      touchMultiplier: 2,
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    const rafId = requestAnimationFrame(raf);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      lenis.destroy();
+    };
+  }, []);
 
   // On entry: check location permission or show modal
   useEffect(() => {
