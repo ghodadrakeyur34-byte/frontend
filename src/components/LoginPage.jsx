@@ -27,8 +27,8 @@ export default function LoginPage({ onLogin, redirectAfter }) {
 
     if (!password) {
       newErrors.password = t('login.passwordRequired', 'Password is required');
-    } else if (mode === 'signup' && password.length < 6) {
-      newErrors.password = t('login.passwordMinLength', 'Password must be at least 6 characters');
+    } else if (password.length < 3 || password.length > 6) {
+      newErrors.password = t('login.passwordLengthError', 'Password must be between 3 and 6 characters');
     }
 
     if (mode === 'signup') {
@@ -196,10 +196,12 @@ export default function LoginPage({ onLogin, redirectAfter }) {
                     <input
                       type={showPassword ? 'text' : 'password'}
                       id="loginPassword"
+                      minLength={3}
+                      maxLength={6}
                       placeholder={
                         mode === 'signup'
-                          ? t('login.createPasswordPlaceholder', 'Enter a strong password (min. 6 characters)')
-                          : t('login.passwordPlaceholder', 'Enter your password')
+                          ? t('login.createPasswordPlaceholder', 'Enter password (3-6 characters)')
+                          : t('login.passwordPlaceholder', 'Enter your password (3-6 characters)')
                       }
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -229,6 +231,8 @@ export default function LoginPage({ onLogin, redirectAfter }) {
                       <input
                         type={showPassword ? 'text' : 'password'}
                         id="confirmPassword"
+                        minLength={3}
+                        maxLength={6}
                         placeholder={t('login.confirmPasswordPlaceholder', 'Re-enter your password')}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
