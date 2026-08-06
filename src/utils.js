@@ -44,8 +44,47 @@ export function canChangePrice(priceChangeLog = []) {
 }
 
 /**
- * Returns the number of price changes the user can still make this month.
+ * Returns the number of price changes remaining in the current calendar month.
  */
 export function getRemainingPriceChanges(priceChangeLog = []) {
-  return MAX_PRICE_CHANGES_PER_MONTH - getPriceChangesThisMonth(priceChangeLog).length;
+  const used = getPriceChangesThisMonth(priceChangeLog).length;
+  return Math.max(0, MAX_PRICE_CHANGES_PER_MONTH - used);
+}
+
+/**
+ * Utility to extract a cookie by name from document.cookie
+ */
+export function getCookie(name) {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? decodeURIComponent(match[2]) : null;
+}
+
+/**
+ * Wrapper around fetch that automatically includes credentials and attaches
+ * the X-XSRF-TOKEN header on state-changing requests (POST, PUT, DELETE).
+ */
+export async function apiFetch(url, options = {}) {
+  const method = (options.method || 'GET').toUpperCase();
+  const headers = { ...(options.headers || {}) };
+
+  options.credentials = 'include';
+
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+    let token = getCookie('XSRF-TOKEN');
+    if (!token) {
+      try {
+        const csrfRes = await fetch('/api/csrf-token', { credentials: 'include' });
+        const data = await csrfRes.json();
+        token = data.csrfToken || getCookie('XSRF-TOKEN');
+      } catch (e) {
+        console.error('Failed to fetch CSRF token:', e);
+      }
+    }
+    if (token) {
+      headers['X-XSRF-TOKEN'] = token;
+    }
+  }
+
+  return fetch(url, { ...options, headers });
 }

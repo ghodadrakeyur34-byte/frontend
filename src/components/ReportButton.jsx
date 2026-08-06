@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { apiFetch } from '../utils';
 
 const REPORT_REASONS = [
   'Fake/Scam listing',
@@ -23,7 +24,7 @@ export default function ReportButton({ type, targetId, reporterEmail }) {
 
     setSubmitting(true);
     try {
-      const res = await fetch('/api/reports', {
+      const res = await apiFetch('/api/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type, targetId, reporterEmail, reason, details }),

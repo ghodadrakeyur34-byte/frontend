@@ -11,7 +11,7 @@ import LoginPage from './components/LoginPage';
 import LocationModal from './components/LocationModal';
 import AdminPanel from './components/AdminPanel';
 import HelpDeskView from './components/HelpDeskView';
-import { canChangePrice } from './utils';
+import { canChangePrice, apiFetch } from './utils';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 
@@ -129,7 +129,7 @@ export default function App() {
     async function loadListings() {
       try {
         setLoading(true);
-        const res = await fetch('/api/listings');
+        const res = await apiFetch('/api/listings');
         if (!res.ok) throw new Error('Failed to fetch listings from server.');
         const data = await res.json();
         setListings(data);
@@ -161,6 +161,17 @@ export default function App() {
     window.location.hash = '#login';
   };
 
+  const handleAuthSuccess = (userData) => {
+    if (!userData) return;
+    const { password, passwordHash, ...safeUser } = userData;
+    setCurrentUser(safeUser);
+    localStorage.setItem(USER_KEY, JSON.stringify(safeUser));
+
+    const redirectTo = loginRedirect || '#home';
+    setLoginRedirect(null);
+    window.location.hash = redirectTo;
+  };
+
   const handleLogin = async (credentials) => {
     const { email, name, phone, password } = credentials;
     const isSignup = !!name && !!phone;
@@ -170,7 +181,7 @@ export default function App() {
       ? { email, name, phone, password }
       : { email, password };
 
-    const res = await fetch(endpoint, {
+    const res = await apiFetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -182,20 +193,20 @@ export default function App() {
       throw new Error(data.error || 'Authentication failed');
     }
 
-    if (data.success) {
-      // Strip any sensitive fields before persisting to localStorage (defense-in-depth)
-      const { password, passwordHash, ...safeUser } = data.user;
-      setCurrentUser(safeUser);
-      localStorage.setItem(USER_KEY, JSON.stringify(safeUser));
+    if (data.requiresVerification) {
+      return data;
+    }
 
-      // Redirect back to where they came from, or home
-      const redirectTo = loginRedirect || '#home';
-      setLoginRedirect(null);
-      window.location.hash = redirectTo;
+    if (data.success && data.user) {
+      handleAuthSuccess(data.user);
+      return data;
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await apiFetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {}
     setCurrentUser(null);
     localStorage.removeItem(USER_KEY);
     window.location.hash = '#home';
@@ -208,23 +219,26 @@ export default function App() {
       : newListing;
 
     try {
-      const res = await fetch('/api/listings', {
+      const res = await apiFetch('/api/listings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(listingWithOwner),
       });
-      if (!res.ok) throw new Error('Failed to create listing');
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Failed to create listing');
+      }
       const created = await res.json();
       setListings((prevListings) => [created, ...prevListings]);
     } catch (err) {
       console.error('Add listing error:', err);
-      alert('Failed to save listing to server. Please try again.');
+      alert(err.message || 'Failed to save listing to server. Please try again.');
     }
   };
 
   const handleDeleteListing = async (listingId) => {
     try {
-      const res = await fetch(`/api/listings/${listingId}`, {
+      const res = await apiFetch(`/api/listings/${listingId}`, {
         method: 'DELETE',
         headers: {
           'Owner-Phone': currentUser?.phone || '',
@@ -243,7 +257,7 @@ export default function App() {
 
   const handleUpdatePrice = async (listingId, newPrice) => {
     try {
-      const res = await fetch(`/api/listings/${listingId}/price`, {
+      const res = await apiFetch(`/api/listings/${listingId}/price`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -307,7 +321,7 @@ export default function App() {
         setLoginRedirect(null);
         return null;
       }
-      return <LoginPage onLogin={handleLogin} redirectAfter={loginRedirect} />;
+      return <LoginPage onLogin={handleLogin} onAuthSuccess={handleAuthSuccess} redirectAfter={loginRedirect} />;
     }
     if (hash === '#admin') {
       return <AdminPanel />;

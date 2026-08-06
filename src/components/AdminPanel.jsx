@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { apiFetch } from '../utils';
 
 const ADMIN_KEY = 'marimilkat_admin';
 
@@ -23,7 +24,7 @@ function AdminLogin({ onLogin }) {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/login', {
+      const res = await apiFetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -70,7 +71,7 @@ function Dashboard({ token, onUnauthorized }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('/api/admin/stats', { headers: { 'x-admin-token': token } })
+    apiFetch('/api/admin/stats', { headers: { 'x-admin-token': token } })
       .then(async r => {
         if (r.status === 401) {
           if (onUnauthorized) onUnauthorized();
@@ -183,7 +184,7 @@ function Listings({ token, onUnauthorized }) {
     if (tab !== 'all') params.set('status', tab);
     if (search) params.set('search', search);
 
-    fetch(`/api/admin/listings?${params}`, { headers: { 'x-admin-token': token } })
+    apiFetch(`/api/admin/listings?${params}`, { headers: { 'x-admin-token': token } })
       .then(async r => {
         if (r.status === 401 && onUnauthorized) return onUnauthorized();
         const d = await r.json();
@@ -196,7 +197,7 @@ function Listings({ token, onUnauthorized }) {
   useEffect(() => { fetchListings(); }, [fetchListings]);
 
   const updateStatus = async (id, status) => {
-    await fetch(`/api/admin/listings/${id}/status`, {
+    await apiFetch(`/api/admin/listings/${id}/status`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
       body: JSON.stringify({ status }),
@@ -206,7 +207,7 @@ function Listings({ token, onUnauthorized }) {
 
   const deleteListing = async (id) => {
     if (!window.confirm('Permanently delete this listing?')) return;
-    await fetch(`/api/admin/listings/${id}`, {
+    await apiFetch(`/api/admin/listings/${id}`, {
       method: 'DELETE',
       headers: { 'x-admin-token': token },
     });
@@ -219,7 +220,7 @@ function Listings({ token, onUnauthorized }) {
   };
 
   const saveEdit = async () => {
-    await fetch(`/api/admin/listings/${editModal.id}`, {
+    await apiFetch(`/api/admin/listings/${editModal.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
       body: JSON.stringify(editForm),
@@ -286,7 +287,7 @@ function Listings({ token, onUnauthorized }) {
     if (!validateAddForm()) return;
     setAddSaving(true);
     try {
-      const res = await fetch('/api/admin/listings', {
+      const res = await apiFetch('/api/admin/listings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
         body: JSON.stringify({
