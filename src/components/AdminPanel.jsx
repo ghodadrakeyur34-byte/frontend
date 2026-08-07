@@ -49,7 +49,7 @@ function AdminLogin({ onLogin }) {
         <form onSubmit={handleSubmit}>
           <div className="admin-field">
             <label>Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="admin@marimilkat.com" required />
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="marimilkatadmin@gmail.com" required />
           </div>
           <div className="admin-field">
             <label>Password</label>
@@ -1080,7 +1080,7 @@ function Settings({ token, onUnauthorized }) {
   const [msg, setMsg] = useState({ type: '', text: '' });
 
   useEffect(() => {
-    fetch('/api/settings')
+    apiFetch('/api/settings')
       .then(res => res.json())
       .then(data => {
         setSettings(data);
@@ -1097,10 +1097,11 @@ function Settings({ token, onUnauthorized }) {
     setSaving(true);
     setMsg({ type: '', text: '' });
     try {
-      const res = await fetch('/api/settings', {
+      const res = await apiFetch('/api/settings', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
           'x-admin-token': token,
         },
         body: JSON.stringify(settings),
@@ -1188,22 +1189,345 @@ function Settings({ token, onUnauthorized }) {
   );
 }
 
-// ===== MAIN ADMIN PANEL =====
+// ===== HELP DESK WRITTEN INQUIRIES =====
+function Inquiries({ token, onUnauthorized }) {
+  const [inquiries, setInquiries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [search, setSearch] = useState('');
+  const [selectedInquiry, setSelectedInquiry] = useState(null);
+  const [adminNote, setAdminNote] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
+  const [msg, setMsg] = useState({ type: '', text: '' });
+
+  const loadInquiries = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await apiFetch('/api/admin/inquiries', {
+        headers: { 'x-admin-token': token }
+      });
+      if (res.status === 401 || res.status === 403) {
+        onUnauthorized();
+        return;
+      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to load inquiries');
+      setInquiries(data);
+    } catch (err) {
+      setMsg({ type: 'error', text: err.message });
+    } finally {
+      setLoading(false);
+    }
+  }, [token, onUnauthorized]);
+
+  useEffect(() => {
+    loadInquiries();
+  }, [loadInquiries]);
+
+  const handleUpdateStatus = async (id, newStatus) => {
+    setActionLoading(true);
+    setMsg({ type: '', text: '' });
+    try {
+      const res = await apiFetch(`/api/admin/inquiries/${id}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'x-admin-token': token,
+        },
+        body: JSON.stringify({ status: newStatus, adminNote }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update status');
+
+      setInquiries(prev => prev.map(i => i.id === id ? data.inquiry : i));
+      if (selectedInquiry?.id === id) {
+        setSelectedInquiry(data.inquiry);
+      }
+      setMsg({ type: 'success', text: `✓ Inquiry marked as ${newStatus}` });
+    } catch (err) {
+      setMsg({ type: 'error', text: err.message });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this inquiry?')) return;
+    setActionLoading(true);
+    try {
+      const res = await apiFetch(`/api/admin/inquiries/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'x-admin-token': token
+        },
+      });
+      if (!res.ok) throw new Error('Failed to delete inquiry');
+      setInquiries(prev => prev.filter(i => i.id !== id));
+      if (selectedInquiry?.id === id) setSelectedInquiry(null);
+      setMsg({ type: 'success', text: '✓ Inquiry deleted' });
+    } catch (err) {
+      setMsg({ type: 'error', text: err.message });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const filtered = inquiries.filter(i => {
+    const matchesStatus = filterStatus === 'all' || i.status === filterStatus;
+    const matchesSearch = !search.trim() || 
+      i.name?.toLowerCase().includes(search.toLowerCase()) ||
+      i.phone?.includes(search) ||
+      i.email?.toLowerCase().includes(search.toLowerCase()) ||
+      i.message?.toLowerCase().includes(search.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
+
+  const pendingCount = inquiries.filter(i => i.status === 'pending').length;
+  const resolvedCount = inquiries.filter(i => i.status === 'resolved').length;
+
+  if (loading) return <div className="admin-loading">Loading Help Desk Inquiries…</div>;
+
+  return (
+    <div className="admin-inquiries-view">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h2 className="admin-page-title">📩 Help Desk Written Inquiries</h2>
+          <p className="admin-muted">Manage messages & contact requests submitted from the Help Desk page.</p>
+        </div>
+        <button onClick={loadInquiries} className="admin-login-btn" style={{ padding: '0.5rem 1rem', width: 'auto' }}>
+          🔄 Refresh
+        </button>
+      </div>
+
+      {msg.text && (
+        <div className={`admin-${msg.type === 'success' ? 'success' : 'error'}`} style={{ marginBottom: '1.5rem', padding: '1rem', borderRadius: 'var(--r-md)' }}>
+          {msg.text}
+        </div>
+      )}
+
+      {/* Metric Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+        <div style={{ background: 'var(--bg2)', padding: '1.2rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
+          <div style={{ color: 'var(--text3)', fontSize: '0.85rem' }}>Total Inquiries</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 'bold', marginTop: '0.3rem' }}>{inquiries.length}</div>
+        </div>
+        <div style={{ background: 'var(--bg2)', padding: '1.2rem', borderRadius: 'var(--r-md)', border: '1px solid #eab308' }}>
+          <div style={{ color: '#eab308', fontSize: '0.85rem' }}>⏳ Pending Response</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#eab308', marginTop: '0.3rem' }}>{pendingCount}</div>
+        </div>
+        <div style={{ background: 'var(--bg2)', padding: '1.2rem', borderRadius: 'var(--r-md)', border: '1px solid #22c55e' }}>
+          <div style={{ color: '#22c55e', fontSize: '0.85rem' }}>✅ Resolved</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#22c55e', marginTop: '0.3rem' }}>{resolvedCount}</div>
+        </div>
+      </div>
+
+      {/* Filters & Search */}
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+        <input
+          type="text"
+          placeholder="Search by name, phone, email, or message..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{ flex: 1, minWidth: '240px', padding: '0.7rem 1rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg2)', color: '#fff' }}
+        />
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          {['all', 'pending', 'resolved'].map(status => (
+            <button
+              key={status}
+              onClick={() => setFilterStatus(status)}
+              style={{
+                padding: '0.6rem 1.2rem',
+                borderRadius: '8px',
+                border: '1px solid var(--border)',
+                background: filterStatus === status ? 'var(--accent)' : 'var(--bg2)',
+                color: filterStatus === status ? '#000' : '#fff',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                textTransform: 'capitalize'
+              }}
+            >
+              {status}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Inquiries Table */}
+      {filtered.length === 0 ? (
+        <div style={{ padding: '3rem', textAlign: 'center', background: 'var(--bg2)', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', color: 'var(--text3)' }}>
+          📭 No inquiries found matching your filters.
+        </div>
+      ) : (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', background: 'var(--bg2)', borderRadius: 'var(--r-md)', overflow: 'hidden' }}>
+            <thead>
+              <tr style={{ background: 'rgba(255,255,255,0.05)', textAlign: 'left', color: 'var(--text3)', fontSize: '0.85rem' }}>
+                <th style={{ padding: '1rem' }}>Date</th>
+                <th style={{ padding: '1rem' }}>Sender</th>
+                <th style={{ padding: '1rem' }}>Contact</th>
+                <th style={{ padding: '1rem' }}>Message</th>
+                <th style={{ padding: '1rem' }}>Status</th>
+                <th style={{ padding: '1rem', textAlign: 'right' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(inq => (
+                <tr key={inq.id} style={{ borderTop: '1px solid var(--border)', fontSize: '0.9rem' }}>
+                  <td style={{ padding: '1rem', whiteSpace: 'nowrap', color: 'var(--text3)' }}>
+                    {new Date(inq.date).toLocaleString()}
+                  </td>
+                  <td style={{ padding: '1rem', fontWeight: '600' }}>
+                    {inq.name}
+                  </td>
+                  <td style={{ padding: '1rem', whiteSpace: 'nowrap' }}>
+                    <div>📱 <a href={`tel:${inq.phone}`} style={{ color: 'var(--accent)' }}>{inq.phone}</a></div>
+                    {inq.email && <div style={{ fontSize: '0.8rem', color: 'var(--text3)' }}>✉️ {inq.email}</div>}
+                  </td>
+                  <td style={{ padding: '1rem', maxWidth: '300px' }}>
+                    <div style={{ whiteSpace: 'pre-wrap', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                      {inq.message}
+                    </div>
+                  </td>
+                  <td style={{ padding: '1rem' }}>
+                    <span style={{
+                      padding: '0.3rem 0.75rem',
+                      borderRadius: '9999px',
+                      fontSize: '0.75rem',
+                      fontWeight: 'bold',
+                      background: inq.status === 'resolved' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(234, 179, 8, 0.15)',
+                      color: inq.status === 'resolved' ? '#4ade80' : '#facc15',
+                      border: `1px solid ${inq.status === 'resolved' ? '#22c55e' : '#eab308'}`
+                    }}>
+                      {inq.status === 'resolved' ? '✅ Resolved' : '⏳ Pending'}
+                    </span>
+                  </td>
+                  <td style={{ padding: '1rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    <button
+                      onClick={() => { setSelectedInquiry(inq); setAdminNote(inq.adminNote || ''); }}
+                      style={{ padding: '0.4rem 0.8rem', marginRight: '0.5rem', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg3)', color: '#fff', cursor: 'pointer' }}
+                    >
+                      👁️ View Details
+                    </button>
+                    {inq.status === 'pending' ? (
+                      <button
+                        onClick={() => handleUpdateStatus(inq.id, 'resolved')}
+                        disabled={actionLoading}
+                        style={{ padding: '0.4rem 0.8rem', marginRight: '0.5rem', borderRadius: '6px', border: 'none', background: '#22c55e', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}
+                      >
+                        ✓ Mark Resolved
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleUpdateStatus(inq.id, 'pending')}
+                        disabled={actionLoading}
+                        style={{ padding: '0.4rem 0.8rem', marginRight: '0.5rem', borderRadius: '6px', border: '1px solid #eab308', background: 'transparent', color: '#eab308', cursor: 'pointer' }}
+                      >
+                        ↩️ Reopen
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleDelete(inq.id)}
+                      disabled={actionLoading}
+                      style={{ padding: '0.4rem 0.8rem', borderRadius: '6px', border: 'none', background: 'rgba(239,68,68,0.2)', color: '#f87171', cursor: 'pointer' }}
+                    >
+                      🗑️ Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Inquiry Detail Modal */}
+      {selectedInquiry && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div style={{ background: 'var(--bg1)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', maxWidth: '600px', width: '100%', padding: '2rem', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ fontSize: '1.3rem' }}>📩 Inquiry Details</h3>
+              <button onClick={() => setSelectedInquiry(null)} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div>
+                <strong style={{ color: 'var(--text3)', fontSize: '0.85rem' }}>Sender Name:</strong>
+                <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{selectedInquiry.name}</div>
+              </div>
+              <div>
+                <strong style={{ color: 'var(--text3)', fontSize: '0.85rem' }}>Phone Number:</strong>
+                <div>
+                  <a href={`tel:${selectedInquiry.phone}`} style={{ color: 'var(--accent)', fontWeight: 'bold' }}>{selectedInquiry.phone}</a>
+                  {' '}
+                  <a href={`https://wa.me/${selectedInquiry.phone.replace(/[^\d]/g, '')}`} target="_blank" rel="noreferrer" style={{ marginLeft: '10px', color: '#25D366' }}>💬 WhatsApp</a>
+                </div>
+              </div>
+              {selectedInquiry.email && (
+                <div>
+                  <strong style={{ color: 'var(--text3)', fontSize: '0.85rem' }}>Email Address:</strong>
+                  <div><a href={`mailto:${selectedInquiry.email}`} style={{ color: 'var(--accent)' }}>{selectedInquiry.email}</a></div>
+                </div>
+              )}
+              <div>
+                <strong style={{ color: 'var(--text3)', fontSize: '0.85rem' }}>Submission Date:</strong>
+                <div style={{ color: 'var(--text2)' }}>{new Date(selectedInquiry.date).toLocaleString()}</div>
+              </div>
+              <div>
+                <strong style={{ color: 'var(--text3)', fontSize: '0.85rem' }}>Written Message:</strong>
+                <div style={{ background: 'var(--bg2)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border)', marginTop: '0.4rem', whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+                  {selectedInquiry.message}
+                </div>
+              </div>
+              <div>
+                <strong style={{ color: 'var(--text3)', fontSize: '0.85rem' }}>Admin Reply / Note:</strong>
+                <textarea
+                  rows="3"
+                  placeholder="Add private note or resolution details..."
+                  value={adminNote}
+                  onChange={e => setAdminNote(e.target.value)}
+                  style={{ width: '100%', padding: '0.8rem 1rem', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: '8px', color: '#fff', marginTop: '0.4rem', resize: 'vertical' }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setSelectedInquiry(null)}
+                style={{ padding: '0.7rem 1.2rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'transparent', color: '#fff', cursor: 'pointer' }}
+              >
+                Close
+              </button>
+              <button
+                onClick={() => handleUpdateStatus(selectedInquiry.id, selectedInquiry.status === 'resolved' ? 'pending' : 'resolved')}
+                disabled={actionLoading}
+                style={{ padding: '0.7rem 1.2rem', borderRadius: '8px', border: 'none', background: selectedInquiry.status === 'resolved' ? '#eab308' : '#22c55e', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                {selectedInquiry.status === 'resolved' ? 'Mark as Pending' : 'Mark as Resolved'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ===== MAIN ADMIN PANEL COMPONENT =====
 export default function AdminPanel() {
   const [admin, setAdmin] = useState(getStoredAdmin);
   const [activeView, setActiveView] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const handleLogin = (data) => {
-    const adminData = { token: data.token, ...data.admin };
-    setAdmin(adminData);
+  const handleLogin = (adminData) => {
     localStorage.setItem(ADMIN_KEY, JSON.stringify(adminData));
+    setAdmin(adminData);
   };
 
   const handleLogout = () => {
-    setAdmin(null);
     localStorage.removeItem(ADMIN_KEY);
-    window.location.hash = '#home';
+    setAdmin(null);
   };
 
   if (!admin) {
@@ -1215,6 +1539,7 @@ export default function AdminPanel() {
     { key: 'listings', icon: '🏘️', label: 'Listings' },
     { key: 'users', icon: '👥', label: 'Users' },
     { key: 'reports', icon: '🚩', label: 'Reports' },
+    { key: 'inquiries', icon: '📩', label: 'Help Desk Inquiries' },
     { key: 'categories', icon: '📂', label: 'Categories' },
     { key: 'settings', icon: '📞', label: 'Help Desk Settings' },
   ];
@@ -1225,6 +1550,7 @@ export default function AdminPanel() {
       case 'listings': return <Listings token={admin.token} onUnauthorized={handleLogout} />;
       case 'users': return <Users token={admin.token} onUnauthorized={handleLogout} />;
       case 'reports': return <Reports token={admin.token} onUnauthorized={handleLogout} />;
+      case 'inquiries': return <Inquiries token={admin.token} onUnauthorized={handleLogout} />;
       case 'categories': return <Categories token={admin.token} onUnauthorized={handleLogout} />;
       case 'settings': return <Settings token={admin.token} onUnauthorized={handleLogout} />;
       default: return <Dashboard token={admin.token} onUnauthorized={handleLogout} />;

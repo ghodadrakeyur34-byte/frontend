@@ -48,6 +48,35 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
       return;
     }
 
+    // Admin direct login check
+    const cleanEmail = email.trim().toLowerCase();
+    if (cleanEmail === 'marimilkatadmin@gmail.com' && (password === '@dmin@Milkat' || password === 'Admin@MariMilkat')) {
+      setIsSubmitting(true);
+      try {
+        const res = await apiFetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: cleanEmail, password }),
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          localStorage.setItem('marimilkat_admin', JSON.stringify(data));
+          if (onAuthSuccess) {
+            onAuthSuccess(data.admin || { email: cleanEmail, name: 'Admin', role: 'admin', isAdmin: true });
+          }
+          window.location.hash = '#admin';
+          return;
+        } else {
+          throw new Error(data.error || 'Admin authentication failed');
+        }
+      } catch (err) {
+        setErrors({ form: err.message });
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
     const newErrors = {};
 
     if (!email.trim() || !validateEmail(email.trim())) {
@@ -56,10 +85,10 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
 
     if (!password) {
       newErrors.password = t('login.passwordRequired', 'Password is required');
-    } else if (password.length < 3) {
-      newErrors.password = t('login.passwordMinLength', 'Password must be at least 3 characters');
-    } else if (password.length > 6) {
-      newErrors.password = t('login.passwordMaxLength', 'Password cannot exceed 6 characters');
+    } else if (password.length < 6) {
+      newErrors.password = t('login.passwordMinLength', 'Password must be at least 6 characters');
+    } else if (password.length > 12) {
+      newErrors.password = t('login.passwordMaxLength', 'Password cannot exceed 12 characters');
     }
 
     if (mode === 'signup') {
@@ -321,7 +350,13 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                     </button>
 
                     <div className="verify-resend-row">
-                      <span>Didn't receive the code?</span>
+                      <button
+                        type="button"
+                        className="btn-help-link"
+                        onClick={() => { window.location.hash = '#help'; }}
+                      >
+                        Didn't receive the code?
+                      </button>
                       <button
                         type="button"
                         className="btn-resend-otp"
@@ -408,14 +443,14 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                           id="loginPassword"
                           placeholder={
                             mode === 'signup'
-                              ? t('login.createPasswordPlaceholder', 'Enter password (3 to 6 characters)')
-                              : t('login.passwordPlaceholder', 'Enter password (3 to 6 characters)')
+                              ? t('login.createPasswordPlaceholder', 'Enter password (6 to 12 characters)')
+                              : t('login.passwordPlaceholder', 'Enter password (6 to 12 characters)')
                           }
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-                          minLength={3}
-                          maxLength={6}
+                          minLength={6}
+                          maxLength={12}
                         />
                         <button
                           type="button"
@@ -445,8 +480,8 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             autoComplete="new-password"
-                            minLength={3}
-                            maxLength={6}
+                            minLength={6}
+                            maxLength={12}
                           />
                         </div>
                         {errors.confirmPassword && (

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { animate, stagger } from 'animejs';
+import { apiFetch } from '../utils';
 
 export default function HelpDeskView({ userLocation }) {
   const { t } = useTranslation();
@@ -16,7 +17,7 @@ export default function HelpDeskView({ userLocation }) {
   useEffect(() => {
     async function fetchSettings() {
       try {
-        const res = await fetch('/api/settings');
+        const res = await apiFetch('/api/settings');
         if (res.ok) {
           const data = await res.json();
           setSettings(data);
@@ -41,10 +42,28 @@ export default function HelpDeskView({ userLocation }) {
     });
   }, [loading]);
 
-  const handleFormSubmit = (e) => {
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    setFormSent(true);
-    setFormData({ name: '', phone: '', message: '' });
+    setSubmitError('');
+    setSubmitting(true);
+    try {
+      const res = await apiFetch('/api/inquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to submit inquiry');
+      setFormSent(true);
+      setFormData({ name: '', phone: '', message: '' });
+    } catch (err) {
+      setSubmitError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const rawPhone = settings.helpMobile || '';
@@ -216,12 +235,18 @@ export default function HelpDeskView({ userLocation }) {
                 style={{ width: '100%', padding: '0.8rem 1rem', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', color: '#fff', resize: 'vertical' }}
               ></textarea>
             </div>
+            {submitError && (
+              <div style={{ padding: '0.8rem 1rem', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', borderRadius: 'var(--r-md)', color: '#f87171', fontSize: '0.9rem' }}>
+                ⚠️ {submitError}
+              </div>
+            )}
             <button
               type="submit"
+              disabled={submitting}
               className="btn-shimmer"
-              style={{ padding: '0.9rem', borderRadius: 'var(--r-md)', background: 'var(--accent)', color: '#000', fontWeight: 'bold', fontSize: '1rem', border: 'none', cursor: 'pointer' }}
+              style={{ padding: '0.9rem', borderRadius: 'var(--r-md)', background: 'var(--accent)', color: '#000', fontWeight: 'bold', fontSize: '1rem', border: 'none', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1 }}
             >
-              🚀 {t('help.submitBtn', 'Submit Inquiry')}
+              {submitting ? '⏳ Submitting...' : `🚀 ${t('help.submitBtn', 'Submit Inquiry')}`}
             </button>
           </form>
         )}

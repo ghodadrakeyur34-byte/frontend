@@ -4626,6 +4626,21 @@ footer a:hover {
   color: var(--text3);
 }
 
+.btn-help-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text3);
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.btn-help-link:hover {
+  color: var(--accent);
+}
+
 .btn-resend-otp {
   background: none;
   border: none;
