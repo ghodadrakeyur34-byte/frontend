@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
+import { PlusCircle, Home, Building2, Trash2, Inbox, AlertTriangle } from 'lucide-react';
 import { formatPrice, timeAgo } from '../utils';
 import PropertyCard from './PropertyCard';
 
@@ -52,8 +53,9 @@ export default function MyListingsView({ listings, currentUser, onDeleteListing 
           <button
             className="btn-sell"
             onClick={() => (window.location.hash = '#sell')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            {t('myListings.postNew')}
+            <PlusCircle size={16} /> {t('myListings.postNew')}
           </button>
         </div>
 
@@ -89,14 +91,16 @@ export default function MyListingsView({ listings, currentUser, onDeleteListing 
             <button
               className={`ml-filter-btn ${filterType === 'house' ? 'active' : ''}`}
               onClick={() => setFilterType('house')}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              🏠 {t('myListings.houses')} ({houses.length})
+              <Home size={14} /> {t('myListings.houses')} ({houses.length})
             </button>
             <button
               className={`ml-filter-btn ${filterType === 'plot' ? 'active' : ''}`}
               onClick={() => setFilterType('plot')}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              📐 {t('myListings.plots')} ({plots.length})
+              <Building2 size={14} /> {t('myListings.plots')} ({plots.length})
             </button>
           </div>
         )}
@@ -111,24 +115,27 @@ export default function MyListingsView({ listings, currentUser, onDeleteListing 
                   className="ml-delete-btn"
                   onClick={(e) => handleDeleteClick(e, listing)}
                   title="Delete this listing"
+                  style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                 >
-                  🗑️ {t('myListings.delete')}
+                  <Trash2 size={14} /> {t('myListings.delete')}
                 </button>
               </div>
             ))}
           </div>
         ) : (
           <div className="empty-state">
-            <div className="icon">📭</div>
+            <div className="icon" style={{ display: 'flex', justifyContent: 'center' }}>
+              <Inbox size={48} color="var(--text3)" />
+            </div>
             {myListings.length === 0 ? (
               <>
                 <p>{t('myListings.noListings')}</p>
                 <button
                   className="btn-submit"
-                  style={{ maxWidth: '260px', margin: '1.5rem auto 0' }}
+                  style={{ maxWidth: '260px', margin: '1.5rem auto 0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                   onClick={() => (window.location.hash = '#sell')}
                 >
-                  {t('myListings.postFirst')}
+                  <PlusCircle size={18} /> {t('myListings.postFirst')}
                 </button>
               </>
             ) : (
@@ -141,8 +148,8 @@ export default function MyListingsView({ listings, currentUser, onDeleteListing 
       {/* Delete Confirmation Modal */}
       <div className={`modal-overlay ${deleteTarget ? 'show' : ''}`}>
         <div className="modal">
-          <div className="checkmark" style={{ background: 'rgba(248,113,113,0.15)', borderColor: '#f87171' }}>
-            🗑️
+          <div className="checkmark" style={{ background: 'rgba(248,113,113,0.15)', borderColor: '#f87171', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <Trash2 size={32} color="#f87171" />
           </div>
           <h2>{t('myListings.deleteTitle')}</h2>
           <Trans i18nKey="myListings.deleteConfirm" values={{ title: deleteTarget?.title }}>
@@ -152,8 +159,8 @@ export default function MyListingsView({ listings, currentUser, onDeleteListing 
             </p>
           </Trans>
           <div className="modal-actions">
-            <button className="btn-submit btn-danger" onClick={confirmDelete}>
-              {t('myListings.yesDelete')}
+            <button className="btn-submit btn-danger" onClick={confirmDelete} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              <Trash2 size={16} /> {t('myListings.yesDelete')}
             </button>
             <button className="btn-submit btn-cancel-modal" onClick={cancelDelete}>
               {t('detail.cancel')}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { ShieldCheck, LayoutDashboard, Building2, Users as UsersIcon, Flag, MessageSquare, FolderTree, PhoneCall, LogOut, Globe, CheckCircle2, Clock, Sparkles, Ban, X, PlusCircle, Pencil, Trash2 } from 'lucide-react';
 import { apiFetch } from '../utils';
 
 const ADMIN_KEY = 'marimilkat_admin';
@@ -42,7 +43,9 @@ function AdminLogin({ onLogin }) {
   return (
     <div className="admin-login-page">
       <div className="admin-login-card">
-        <div className="admin-login-icon">🛡️</div>
+        <div className="admin-login-icon" style={{ display: 'flex', justifyContent: 'center' }}>
+          <ShieldCheck size={38} color="var(--accent)" />
+        </div>
         <h1>Admin Panel</h1>
         <p className="admin-login-sub">MariMilkat Administration</p>
         {error && <div className="admin-error">{error}</div>}
@@ -92,14 +95,14 @@ function Dashboard({ token, onUnauthorized }) {
   if (error || !stats) return <div className="admin-loading">{error || 'Failed to load stats.'}</div>;
 
   const statCards = [
-    { label: 'Total Listings', value: stats.totalListings || 0, icon: '🏘️', color: '#38bdf8' },
-    { label: 'Active Listings', value: stats.activeListings || 0, icon: '✅', color: '#34d399' },
-    { label: 'Pending Approval', value: stats.pendingListings || 0, icon: '⏳', color: '#0ea5e9' },
-    { label: "Today's New", value: stats.todayNewListings || 0, icon: '🆕', color: '#818cf8' },
-    { label: 'Total Users', value: stats.totalUsers || 0, icon: '👥', color: '#06b6d4' },
-    { label: 'Active Users', value: stats.activeUsers || 0, icon: '🟢', color: '#22c55e' },
-    { label: 'Banned Users', value: stats.bannedUsers || 0, icon: '🚫', color: '#f87171' },
-    { label: 'Open Reports', value: stats.pendingReports || 0, icon: '🚩', color: '#fb923c' },
+    { label: 'Total Listings', value: stats.totalListings || 0, icon: <Building2 size={20} color="#38bdf8" />, color: '#38bdf8' },
+    { label: 'Active Listings', value: stats.activeListings || 0, icon: <CheckCircle2 size={20} color="#34d399" />, color: '#34d399' },
+    { label: 'Pending Approval', value: stats.pendingListings || 0, icon: <Clock size={20} color="#0ea5e9" />, color: '#0ea5e9' },
+    { label: "Today's New", value: stats.todayNewListings || 0, icon: <Sparkles size={20} color="#818cf8" />, color: '#818cf8' },
+    { label: 'Total Users', value: stats.totalUsers || 0, icon: <UsersIcon size={20} color="#06b6d4" />, color: '#06b6d4' },
+    { label: 'Active Users', value: stats.activeUsers || 0, icon: <CheckCircle2 size={20} color="#22c55e" />, color: '#22c55e' },
+    { label: 'Banned Users', value: stats.bannedUsers || 0, icon: <Ban size={20} color="#f87171" />, color: '#f87171' },
+    { label: 'Open Reports', value: stats.pendingReports || 0, icon: <Flag size={20} color="#fb923c" />, color: '#fb923c' },
   ];
 
   const typeEntries = Object.entries(stats.listingsByType || {});
@@ -1535,13 +1538,13 @@ export default function AdminPanel() {
   }
 
   const navItems = [
-    { key: 'dashboard', icon: '📊', label: 'Dashboard' },
-    { key: 'listings', icon: '🏘️', label: 'Listings' },
-    { key: 'users', icon: '👥', label: 'Users' },
-    { key: 'reports', icon: '🚩', label: 'Reports' },
-    { key: 'inquiries', icon: '📩', label: 'Help Desk Inquiries' },
-    { key: 'categories', icon: '📂', label: 'Categories' },
-    { key: 'settings', icon: '📞', label: 'Help Desk Settings' },
+    { key: 'dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
+    { key: 'listings', icon: <Building2 size={18} />, label: 'Listings' },
+    { key: 'users', icon: <UsersIcon size={18} />, label: 'Users' },
+    { key: 'reports', icon: <Flag size={18} />, label: 'Reports' },
+    { key: 'inquiries', icon: <MessageSquare size={18} />, label: 'Help Desk Inquiries' },
+    { key: 'categories', icon: <FolderTree size={18} />, label: 'Categories' },
+    { key: 'settings', icon: <PhoneCall size={18} />, label: 'Help Desk Settings' },
   ];
 
   const renderView = () => {
@@ -1562,8 +1565,8 @@ export default function AdminPanel() {
       {/* Sidebar */}
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="admin-sidebar-header">
-          <div className="admin-sidebar-logo">
-            🛡️ <span>Admin</span>
+          <div className="admin-sidebar-logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <ShieldCheck size={22} color="var(--accent)" /> <span>Admin</span>
           </div>
           <button className="admin-sidebar-close" onClick={() => setSidebarOpen(false)}>×</button>
         </div>
@@ -1581,11 +1584,11 @@ export default function AdminPanel() {
         </nav>
         <div className="admin-sidebar-footer">
           <button className="admin-nav-item logout" onClick={handleLogout}>
-            <span className="admin-nav-icon">🚪</span>
+            <span className="admin-nav-icon"><LogOut size={18} /></span>
             <span className="admin-nav-label">Logout</span>
           </button>
           <button className="admin-nav-item" onClick={() => { window.location.hash = '#home'; }}>
-            <span className="admin-nav-icon">🌐</span>
+            <span className="admin-nav-icon"><Globe size={18} /></span>
             <span className="admin-nav-label">View Site</span>
           </button>
         </div>

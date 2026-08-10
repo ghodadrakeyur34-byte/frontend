@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ArrowLeft, Frown, Pencil, AlertTriangle, CheckCircle2, MapPin, Home, Building2, Phone, Eye, Lock, Share2 } from 'lucide-react';
 import { formatPrice, timeAgo, canChangePrice, getRemainingPriceChanges } from '../utils';
 import PropertyCard from './PropertyCard';
 import PropertyMap from './PropertyMap';
@@ -27,11 +28,13 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
     return (
       <main id="page-detail" className="page active">
         <section className="detail-page">
-          <button className="back-btn" onClick={() => window.history.back()}>
-            {t('detail.back')}
+          <button className="back-btn" onClick={() => window.history.back()} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <ArrowLeft size={16} /> {t('detail.back')}
           </button>
           <div className="empty-state">
-            <div className="icon">😕</div>
+            <div className="icon" style={{ display: 'flex', justifyContent: 'center' }}>
+              <Frown size={48} color="var(--text3)" />
+            </div>
             <p>{t('detail.notFound')}</p>
           </div>
         </section>
@@ -124,8 +127,8 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
   return (
     <main id="page-detail" className="page active">
       <section className="detail-page">
-        <button className="back-btn" onClick={() => window.history.back()}>
-          {t('detail.back')}
+        <button className="back-btn" onClick={() => window.history.back()} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <ArrowLeft size={16} /> {t('detail.back')}
         </button>
 
         {imgs.length > 0 && (
@@ -197,14 +200,16 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
                         ? t('detail.editPriceTooltip', { remaining, s: remaining !== 1 ? 's' : '' })
                         : t('detail.limitReached')
                     }
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                   >
-                    {t('detail.editPrice')}
+                    <Pencil size={15} /> {t('detail.editPrice')}
                   </button>
                 </div>
               )}
 
               {/* Remaining changes indicator */}
-              <div className={`price-limit-info ${remaining === 0 ? 'exhausted' : remaining === 1 ? 'warning' : ''}`}>
+              <div className={`price-limit-info ${remaining === 0 ? 'exhausted' : remaining === 1 ? 'warning' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <AlertTriangle size={14} />
                 {remaining === 0
                   ? t('detail.noChangesLeft')
                   : t('detail.changesRemaining', { remaining, s: remaining !== 1 ? 's' : '' })}
@@ -212,19 +217,24 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
 
               {/* Feedback message */}
               {priceMessage && (
-                <div className={`price-message ${priceMessage.type}`}>
-                  {priceMessage.type === 'success' ? '✅' : '⚠️'} {priceMessage.text}
+                <div className={`price-message ${priceMessage.type}`} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {priceMessage.type === 'success' ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />} {priceMessage.text}
                 </div>
               )}
             </div>
 
             <div className="detail-title">{title}</div>
-            <div className="detail-location">📍 {area}, {city}</div>
+            <div className="detail-location" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <MapPin size={16} color="var(--accent)" /> {area}, {city}
+            </div>
             
             <div className="specs-grid">
               <div className="spec-item">
                 <div className="spec-label">{t('detail.type')}</div>
-                <div className="spec-value">{type === 'house' ? `🏠 ${t('common.house')}` : `📐 ${t('common.plot')}`}</div>
+                <div className="spec-value" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {type === 'house' ? <Home size={16} /> : <Building2 size={16} />}
+                  {type === 'house' ? t('common.house') : t('common.plot')}
+                </div>
               </div>
               <div className="spec-item">
                 <div className="spec-label">{t('detail.size')}</div>
@@ -246,8 +256,8 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
             </div>
 
             <div className="detail-map-box" style={{ marginTop: '2rem' }}>
-              <h3 style={{ marginBottom: '1rem', fontFamily: 'var(--font-h)', fontSize: '1.2rem' }}>
-                📍 {t('detail.locationMap', 'Property Location on Map')}
+              <h3 style={{ marginBottom: '1rem', fontFamily: 'var(--font-h)', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <MapPin size={18} color="var(--accent)" /> {t('detail.locationMap', 'Property Location on Map')}
               </h3>
               <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border)' }}>
                 <PropertyMap
@@ -273,33 +283,33 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
             {/* ===== GATED CONTACT NUMBER ===== */}
             {isLoggedIn && showNumber ? (
               /* Fully revealed — logged in user clicked "Show Number" */
-              <a href={`tel:${contact.phone}`} className="btn-call">
-                {t('detail.call', { phone: contact.phone })}
+              <a href={`tel:${contact.phone}`} className="btn-call" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <Phone size={18} /> {t('detail.call', { phone: contact.phone })}
               </a>
             ) : isLoggedIn && !showNumber ? (
               /* Logged in but hasn't clicked reveal yet */
-              <button className="btn-reveal-number" onClick={handleRevealNumber}>
-                <span className="reveal-icon">👁️</span>
+              <button className="btn-reveal-number" onClick={handleRevealNumber} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <Eye size={18} />
                 <span>{t('detail.showContact')}</span>
                 <span className="phone-masked">{getMaskedPhone(contact.phone)}</span>
               </button>
             ) : (
               /* Not logged in — locked state */
               <div className="contact-locked">
-                <div className="locked-phone-preview">
-                  <span className="lock-icon">🔒</span>
+                <div className="locked-phone-preview" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <Lock size={16} color="var(--text3)" />
                   <span className="phone-blurred">{getMaskedPhone(contact.phone)}</span>
                 </div>
-                <button className="btn-login-to-view" onClick={onRequireLogin}>
-                  <span className="login-icon-sm">🔐</span>
+                <button className="btn-login-to-view" onClick={onRequireLogin} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <Lock size={16} />
                   {t('detail.loginToView')}
                 </button>
                 <p className="locked-hint">{t('detail.loginHint')}</p>
               </div>
             )}
 
-            <button className="btn-share" onClick={handleShare}>
-              {t('detail.shareListing')}
+            <button className="btn-share" onClick={handleShare} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <Share2 size={16} /> {t('detail.shareListing')}
             </button>
             <ReportButton type="listing" targetId={id} reporterEmail={currentUser?.email} />
           </div>

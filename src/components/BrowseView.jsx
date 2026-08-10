@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
+import { LayoutGrid, MapPin, SlidersHorizontal, RotateCcw, SearchX } from 'lucide-react';
 import PropertyCard from './PropertyCard';
 import PropertyMap from './PropertyMap';
 
@@ -75,14 +76,16 @@ export default function BrowseView({ listings, initialFilters, clearInitialFilte
               <button
                 className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
                 onClick={() => setViewMode('grid')}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               >
-                📱 Grid
+                <LayoutGrid size={15} /> Grid
               </button>
               <button
                 className={`view-toggle-btn ${viewMode === 'map' ? 'active' : ''}`}
                 onClick={() => setViewMode('map')}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               >
-                🗺️ Map
+                <MapPin size={15} /> Map
               </button>
             </div>
 
@@ -101,7 +104,9 @@ export default function BrowseView({ listings, initialFilters, clearInitialFilte
 
         <div className="browse-layout">
           <aside className="filter-panel">
-            <h3>{t('browse.filters')}</h3>
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <SlidersHorizontal size={18} color="var(--accent)" /> {t('browse.filters')}
+            </h3>
             <div className="filter-group">
               <label htmlFor="filterType">{t('browse.propertyType')}</label>
               <select
@@ -110,8 +115,8 @@ export default function BrowseView({ listings, initialFilters, clearInitialFilte
                 onChange={(e) => setFilterType(e.target.value)}
               >
                 <option value="">{t('hero.allTypes')}</option>
-                <option value="house">🏠 {t('common.house')}</option>
-                <option value="plot">📐 {t('common.plot')}</option>
+                <option value="house">{t('common.house')}</option>
+                <option value="plot">{t('common.plot')}</option>
               </select>
             </div>
             <div className="filter-group">
@@ -146,7 +151,9 @@ export default function BrowseView({ listings, initialFilters, clearInitialFilte
                 <option value="Junagadh">Junagadh(જુનાગઢ)</option>
               </select>
             </div>
-            <button className="btn-clear" onClick={handleClearAll}>{t('browse.clearAll')}</button>
+            <button className="btn-clear" onClick={handleClearAll} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              <RotateCcw size={15} /> {t('browse.clearAll')}
+            </button>
           </aside>
 
           <div style={{ flex: 1, width: '100%' }}>
@@ -167,7 +174,9 @@ export default function BrowseView({ listings, initialFilters, clearInitialFilte
               </div>
             ) : (
               <div className="empty-state" id="emptyState">
-                <div className="icon">🏚️</div>
+                <div className="icon" style={{ display: 'flex', justifyContent: 'center' }}>
+                  <SearchX size={48} color="var(--text3)" />
+                </div>
                 <p>{t('browse.noResults')}</p>
               </div>
             )}

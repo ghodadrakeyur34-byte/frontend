@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Flag, CheckCircle2 } from 'lucide-react';
 import { apiFetch } from '../utils';
 
 const REPORT_REASONS = [
@@ -51,21 +52,26 @@ export default function ReportButton({ type, targetId, reporterEmail }) {
         className="report-btn"
         onClick={() => setShowModal(true)}
         title="Report this listing"
+        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
       >
-        🚩 Report
+        <Flag size={15} /> Report
       </button>
 
       {showModal && (
         <div className="admin-modal-overlay" onClick={() => setShowModal(false)}>
           <div className="admin-modal report-modal" onClick={e => e.stopPropagation()}>
             <div className="admin-modal-header">
-              <h3>🚩 Report {type === 'listing' ? 'Listing' : 'User'}</h3>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Flag size={18} color="var(--danger)" /> Report {type === 'listing' ? 'Listing' : 'User'}
+              </h3>
               <button className="admin-modal-close" onClick={() => setShowModal(false)}>×</button>
             </div>
 
             {submitted ? (
               <div className="admin-modal-body" style={{ textAlign: 'center', padding: '2rem' }}>
-                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅</div>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                  <CheckCircle2 size={48} color="var(--success)" />
+                </div>
                 <h3 style={{ color: '#10b981' }}>Report Submitted</h3>
                 <p style={{ color: 'var(--text3)' }}>Thank you. Our team will review this report.</p>
               </div>

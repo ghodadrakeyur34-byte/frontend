@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
+import { Locate, Target, Maximize2 } from 'lucide-react';
 import { formatPrice } from '../utils';
 
 export default function PropertyMap({
@@ -66,7 +67,6 @@ export default function PropertyMap({
 
       const isSelected = selectedListingId === listing.id;
       const isHouse = listing.type === 'house';
-      const iconSymbol = isHouse ? '🏠' : '📐';
       const formattedPrice = formatPrice(listing.price);
 
       // Custom marker HTML icon
@@ -74,7 +74,6 @@ export default function PropertyMap({
         className: 'custom-map-pin-container',
         html: `
           <div class="map-pin ${isHouse ? 'pin-house' : 'pin-plot'} ${isSelected ? 'pin-selected' : ''}">
-            <span class="pin-icon">${iconSymbol}</span>
             <span class="pin-price">${formattedPrice}</span>
           </div>
         `,
@@ -95,15 +94,15 @@ export default function PropertyMap({
           <div class="map-hover-card-img">
             <img src="${thumb}" alt="${listing.title}" />
             <span class="map-hover-badge ${isHouse ? 'badge-house' : 'badge-plot'}">
-              ${iconSymbol} ${isHouse ? 'House' : 'Plot'}
+              ${isHouse ? 'House' : 'Plot'}
             </span>
           </div>
           <div class="map-hover-card-body">
             <div class="map-hover-price">${formattedPrice}</div>
             <div class="map-hover-title">${listing.title}</div>
-            <div class="map-hover-location">📍 ${listing.area}, ${listing.city}</div>
+            <div class="map-hover-location">${listing.area}, ${listing.city}</div>
             <div class="map-hover-meta">
-              <span>📏 ${listing.size} ${listing.unit}</span>
+              <span>${listing.size} ${listing.unit}</span>
             </div>
             <a href="#detail/${listing.id}" class="map-hover-btn">
               View Details →
@@ -154,7 +153,7 @@ export default function PropertyMap({
       });
 
       const userMarker = L.marker([userLat, userLng], { icon: userIcon });
-      userMarker.bindTooltip('📍 You are here', { permanent: true, direction: 'top' });
+      userMarker.bindTooltip('You are here', { permanent: true, direction: 'top' });
       userMarker.addTo(map);
       userMarkerRef.current = userMarker;
     }
@@ -185,18 +184,18 @@ export default function PropertyMap({
 
       <div className="map-controls-bar">
         {userLocation ? (
-          <button className="map-ctrl-btn active" onClick={handleRecenter} title="Center to My Location">
-            📍 My Location
+          <button className="map-ctrl-btn active" onClick={handleRecenter} title="Center to My Location" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <Locate size={15} /> My Location
           </button>
         ) : (
           onRequestLocation && (
-            <button className="map-ctrl-btn" onClick={onRequestLocation} title="Enable Location">
-              🎯 Enable Location
+            <button className="map-ctrl-btn" onClick={onRequestLocation} title="Enable Location" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <Target size={15} /> Enable Location
             </button>
           )
         )}
-        <button className="map-ctrl-btn" onClick={handleRecenter} title="Reset View">
-          🔄 Fit All Properties
+        <button className="map-ctrl-btn" onClick={handleRecenter} title="Reset View" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Maximize2 size={15} /> Fit All Properties
         </button>
       </div>
     </div>

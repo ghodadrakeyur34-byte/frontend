@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { animate, stagger } from 'animejs';
+import { Phone, MessageSquare, Mail, Clock, Send, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { apiFetch } from '../utils';
 
 export default function HelpDeskView({ userLocation }) {
@@ -87,8 +88,8 @@ export default function HelpDeskView({ userLocation }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
         {/* Phone Contact Card */}
         <div className="glass-card help-card" style={{ padding: '2rem', borderRadius: 'var(--r-lg)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '1rem', background: 'rgba(226, 184, 87, 0.15)', width: '70px', height: '70px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            📞
+          <div style={{ marginBottom: '1rem', background: 'rgba(226, 184, 87, 0.15)', width: '70px', height: '70px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Phone size={32} color="var(--accent)" />
           </div>
           <h3 style={{ fontSize: '1.3rem', marginBottom: '0.5rem' }}>{t('help.mobileTitle', 'Mobile Helpline')}</h3>
           <p style={{ color: 'var(--text3)', fontSize: '0.9rem', marginBottom: '1.2rem' }}>
@@ -112,17 +113,20 @@ export default function HelpDeskView({ userLocation }) {
               fontWeight: '700',
               textDecoration: 'none',
               width: '100%',
-              display: 'inline-block'
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
             }}
           >
-            📲 {t('help.callNow', 'Call Now')}
+            <Phone size={18} /> {t('help.callNow', 'Call Now')}
           </a>
         </div>
 
         {/* WhatsApp Card */}
         <div className="glass-card help-card" style={{ padding: '2rem', borderRadius: 'var(--r-lg)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '1rem', background: 'rgba(34, 197, 94, 0.15)', width: '70px', height: '70px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            💬
+          <div style={{ marginBottom: '1rem', background: 'rgba(34, 197, 94, 0.15)', width: '70px', height: '70px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <MessageSquare size={32} color="#22c55e" />
           </div>
           <h3 style={{ fontSize: '1.3rem', marginBottom: '0.5rem' }}>{t('help.whatsappTitle', 'WhatsApp Chat')}</h3>
           <p style={{ color: 'var(--text3)', fontSize: '0.9rem', marginBottom: '1.2rem' }}>
@@ -144,24 +148,27 @@ export default function HelpDeskView({ userLocation }) {
               fontWeight: '700',
               textDecoration: 'none',
               width: '100%',
-              display: 'inline-block'
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
             }}
           >
-            💬 {t('help.whatsappBtn', 'Chat on WhatsApp')}
+            <MessageSquare size={18} /> {t('help.whatsappBtn', 'Chat on WhatsApp')}
           </a>
         </div>
 
         {/* Email & Hours Card */}
         <div className="glass-card help-card" style={{ padding: '2rem', borderRadius: 'var(--r-lg)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '1rem', background: 'rgba(99, 102, 241, 0.15)', width: '70px', height: '70px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            ✉️
+          <div style={{ marginBottom: '1rem', background: 'rgba(99, 102, 241, 0.15)', width: '70px', height: '70px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Mail size={32} color="#6366f1" />
           </div>
           <h3 style={{ fontSize: '1.3rem', marginBottom: '0.5rem' }}>{t('help.emailTitle', 'Email & Support Hours')}</h3>
           <p style={{ color: 'var(--text3)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
             {settings.helpEmail}
           </p>
-          <p style={{ color: 'var(--accent)', fontWeight: '600', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
-            ⏰ {settings.helpHours}
+          <p style={{ color: 'var(--accent)', fontWeight: '600', fontSize: '0.95rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Clock size={16} /> {settings.helpHours}
           </p>
           <a
             href={`mailto:${settings.helpEmail}`}
@@ -174,23 +181,26 @@ export default function HelpDeskView({ userLocation }) {
               fontWeight: '600',
               textDecoration: 'none',
               width: '100%',
-              display: 'inline-block',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
               background: 'rgba(255,255,255,0.05)'
             }}
           >
-            ✉️ {t('help.emailBtn', 'Send Email')}
+            <Mail size={18} /> {t('help.emailBtn', 'Send Email')}
           </a>
         </div>
       </div>
 
       {/* Inquiry Form */}
       <div className="glass-card help-card" style={{ padding: '2.5rem', borderRadius: 'var(--r-xl)', maxWidth: '750px', margin: '0 auto' }}>
-        <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', textAlign: 'center' }}>
-          📝 {t('help.formTitle', 'Send Us a Direct Message')}
+        <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <Send size={22} color="var(--accent)" /> {t('help.formTitle', 'Send Us a Direct Message')}
         </h3>
         {formSent ? (
-          <div style={{ padding: '1.5rem', background: 'rgba(34, 197, 94, 0.15)', border: '1px solid #22c55e', borderRadius: 'var(--r-md)', textAlign: 'center', color: '#4ade80' }}>
-            ✓ {t('help.formSuccess', 'Thank you! Your message has been sent successfully. Our team will contact you shortly.')}
+          <div style={{ padding: '1.5rem', background: 'rgba(34, 197, 94, 0.15)', border: '1px solid #22c55e', borderRadius: 'var(--r-md)', textAlign: 'center', color: '#4ade80', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <CheckCircle2 size={20} /> {t('help.formSuccess', 'Thank you! Your message has been sent successfully. Our team will contact you shortly.')}
           </div>
         ) : (
           <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -236,17 +246,17 @@ export default function HelpDeskView({ userLocation }) {
               ></textarea>
             </div>
             {submitError && (
-              <div style={{ padding: '0.8rem 1rem', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', borderRadius: 'var(--r-md)', color: '#f87171', fontSize: '0.9rem' }}>
-                ⚠️ {submitError}
+              <div style={{ padding: '0.8rem 1rem', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', borderRadius: 'var(--r-md)', color: '#f87171', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <AlertTriangle size={18} /> {submitError}
               </div>
             )}
             <button
               type="submit"
               disabled={submitting}
               className="btn-shimmer"
-              style={{ padding: '0.9rem', borderRadius: 'var(--r-md)', background: 'var(--accent)', color: '#000', fontWeight: 'bold', fontSize: '1rem', border: 'none', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1 }}
+              style={{ padding: '0.9rem', borderRadius: 'var(--r-md)', background: 'var(--accent)', color: '#000', fontWeight: 'bold', fontSize: '1rem', border: 'none', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
             >
-              {submitting ? '⏳ Submitting...' : `🚀 ${t('help.submitBtn', 'Submit Inquiry')}`}
+              {submitting ? 'Submitting...' : <> <Send size={18} /> {t('help.submitBtn', 'Submit Inquiry')} </>}
             </button>
           </form>
         )}

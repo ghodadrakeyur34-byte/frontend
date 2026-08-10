@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Home, MapPin, Target, Building2, PlusCircle, ShieldCheck, LogOut, User } from 'lucide-react';
 
 export default function Navbar({ currentHash, currentUser, onLogout, onShowLogin, onRequestLocation, userLocation }) {
   const { t, i18n } = useTranslation();
@@ -44,8 +45,9 @@ export default function Navbar({ currentHash, currentUser, onLogout, onShowLogin
 
   return (
     <nav className={`navbar glass-card ${isScrolled ? 'scrolled' : ''}`} id="navbar">
-      <a onClick={() => handleNavClick('#home')} className="logo" style={{ cursor: 'pointer' }}>
-        <span className="gradient-text">Mari</span><span style={{ color: 'var(--text)' }}>Milkat</span>
+      <a onClick={() => handleNavClick('#home')} className="logo" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Home size={22} color="var(--accent)" />
+        <span><span className="gradient-text">Mari</span><span style={{ color: 'var(--text)' }}>Milkat</span></span>
       </a>
       <ul className={`nav-links ${isOpen ? 'open' : ''}`} id="navLinks">
         <li>
@@ -89,13 +91,13 @@ export default function Navbar({ currentHash, currentUser, onLogout, onShowLogin
       {/* Right-side: location badge + language toggle + user indicator */}
       <div className="nav-right">
         {userLocation ? (
-          <button className="nav-loc-btn active" onClick={onRequestLocation} title="Location active">
-            📍 Nearby
+          <button className="nav-loc-btn active" onClick={onRequestLocation} title="Location active" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <MapPin size={15} /> Nearby
           </button>
         ) : (
           onRequestLocation && (
-            <button className="nav-loc-btn" onClick={onRequestLocation} title="Enable location">
-              🎯 Location
+            <button className="nav-loc-btn" onClick={onRequestLocation} title="Enable location" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <Target size={15} /> Location
             </button>
           )
         )}
@@ -123,25 +125,25 @@ export default function Navbar({ currentHash, currentUser, onLogout, onShowLogin
                   <strong>{currentUser.name}</strong>
                   <span>{currentUser.email}</span>
                 </div>
-                <button onClick={() => handleNavClick('#my-listings')}>
-                  📋 {t('nav.myListings')}
+                <button onClick={() => handleNavClick('#my-listings')} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Building2 size={16} /> {t('nav.myListings')}
                 </button>
-                <button onClick={() => handleNavClick('#sell')}>
-                  📝 {t('nav.postAd')}
+                <button onClick={() => handleNavClick('#sell')} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <PlusCircle size={16} /> {t('nav.postAd')}
                 </button>
-                <button onClick={() => handleNavClick('#admin')}>
-                  🛡️ Admin Panel
+                <button onClick={() => handleNavClick('#admin')} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <ShieldCheck size={16} /> Admin Panel
                 </button>
                 <hr />
-                <button onClick={onLogout} className="logout-btn">
-                  🚪 {t('nav.signOut')}
+                <button onClick={onLogout} className="logout-btn" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <LogOut size={16} /> {t('nav.signOut')}
                 </button>
               </div>
             )}
           </div>
         ) : (
-          <button className="btn-sell" onClick={() => { window.location.hash = '#login'; }}>
-            👤 {t('nav.signIn')}
+          <button className="btn-sell" onClick={() => { window.location.hash = '#login'; }} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <User size={16} /> {t('nav.signIn')}
           </button>
         )}
       </div>

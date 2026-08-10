@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Home, Mail, CheckCircle2, Lock, KeyRound, User, Phone, Eye, EyeOff, RotateCw, ArrowLeft, ShieldCheck, Info, AlertTriangle } from 'lucide-react';
 import { apiFetch } from '../utils';
 
 export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
@@ -156,7 +157,7 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
       }
 
       if (data.success && data.user) {
-        setInfoMessage('✅ Email verified! Signing you in...');
+        setInfoMessage('Email verified! Signing you in...');
         setTimeout(() => {
           if (onAuthSuccess) {
             onAuthSuccess(data.user);
@@ -193,7 +194,7 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
         setDevOtpHint(data.devCode);
       }
       setResendTimer(30);
-      setInfoMessage('📩 A new 6-digit verification code has been sent to your email!');
+      setInfoMessage('A new 6-digit verification code has been sent to your email!');
     } catch (err) {
       setErrors({ form: err.message });
     } finally {
@@ -208,22 +209,30 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
           {/* Left Panel — Branding */}
           <div className="login-branding">
             <div className="login-branding-content">
-              <div className="login-brand-icon">🏠</div>
+              <div className="login-brand-icon" style={{ display: 'flex', justifyContent: 'center' }}>
+                <Home size={38} color="var(--accent)" />
+              </div>
               <h1>
                 Mari<span>Milkat</span>
               </h1>
               <p>{t('login.brandDescription')}</p>
               <div className="login-features">
                 <div className="login-feature">
-                  <span className="feature-icon">✉️</span>
+                  <span className="feature-icon" style={{ display: 'flex', alignItems: 'center' }}>
+                    <Mail size={16} color="var(--accent)" />
+                  </span>
                   <span>Email verification required</span>
                 </div>
                 <div className="login-feature">
-                  <span className="feature-icon">✅</span>
+                  <span className="feature-icon" style={{ display: 'flex', alignItems: 'center' }}>
+                    <CheckCircle2 size={16} color="var(--success)" />
+                  </span>
                   <span>{t('login.featureVerified')}</span>
                 </div>
                 <div className="login-feature">
-                  <span className="feature-icon">🔒</span>
+                  <span className="feature-icon" style={{ display: 'flex', alignItems: 'center' }}>
+                    <Lock size={16} color="var(--accent)" />
+                  </span>
                   <span>{t('login.featureSecure')}</span>
                 </div>
               </div>
@@ -268,8 +277,9 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                     setErrors({});
                     setInfoMessage('');
                   }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
-                  ← Back to Sign In
+                  <ArrowLeft size={16} /> Back to Sign In
                 </button>
               )}
 
@@ -295,14 +305,14 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
               </p>
 
               {infoMessage && (
-                <div className="login-info-banner">
-                  ℹ️ {infoMessage}
+                <div className="login-info-banner" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Info size={16} color="var(--accent)" /> {infoMessage}
                 </div>
               )}
 
               {errors.form && (
-                <div className="login-error-banner">
-                  ⚠️ {errors.form}
+                <div className="login-error-banner" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <AlertTriangle size={16} color="var(--danger)" /> {errors.form}
                 </div>
               )}
 
@@ -312,7 +322,9 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                     <div className={`form-group ${errors.otp ? 'has-error' : ''}`}>
                       <label htmlFor="otpCode">6-Digit Code *</label>
                       <div className="input-with-icon">
-                        <span className="input-icon">🔢</span>
+                        <span className="input-icon" style={{ display: 'flex', alignItems: 'center' }}>
+                          <ShieldCheck size={18} color="var(--accent)" />
+                        </span>
                         <input
                           type="text"
                           id="otpCode"
@@ -338,6 +350,7 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                       type="submit"
                       className="btn-submit login-submit"
                       disabled={isSubmitting || otpCode.length !== 6}
+                      style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                     >
                       {isSubmitting ? (
                         <span className="btn-loading">
@@ -345,7 +358,9 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                           Verifying Code...
                         </span>
                       ) : (
-                        '✉️ Verify Email & Sign In'
+                        <>
+                          <Mail size={18} /> Verify Email & Sign In
+                        </>
                       )}
                     </button>
 
@@ -362,12 +377,14 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                         className="btn-resend-otp"
                         onClick={handleResendOtp}
                         disabled={resendTimer > 0 || isResending}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                       >
+                        <RotateCw size={14} />
                         {isResending
                           ? 'Sending...'
                           : resendTimer > 0
                           ? `Resend Code (${resendTimer}s)`
-                          : '↻ Resend Code'}
+                          : 'Resend Code'}
                       </button>
                     </div>
                   </>
@@ -377,7 +394,9 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                     <div className={`form-group ${errors.email ? 'has-error' : ''}`}>
                       <label htmlFor="loginEmail">{t('login.email')}</label>
                       <div className="input-with-icon">
-                        <span className="input-icon">📧</span>
+                        <span className="input-icon" style={{ display: 'flex', alignItems: 'center' }}>
+                          <Mail size={18} color="var(--text3)" />
+                        </span>
                         <input
                           type="email"
                           id="loginEmail"
@@ -396,7 +415,9 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                       <div className={`form-group ${errors.name ? 'has-error' : ''}`}>
                         <label htmlFor="loginName">{t('login.fullName')}</label>
                         <div className="input-with-icon">
-                          <span className="input-icon">👤</span>
+                          <span className="input-icon" style={{ display: 'flex', alignItems: 'center' }}>
+                            <User size={18} color="var(--text3)" />
+                          </span>
                           <input
                             type="text"
                             id="loginName"
@@ -415,7 +436,9 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                       <div className={`form-group ${errors.phone ? 'has-error' : ''}`}>
                         <label htmlFor="loginPhone">{t('login.phone')}</label>
                         <div className="input-with-icon">
-                          <span className="input-icon">📱</span>
+                          <span className="input-icon" style={{ display: 'flex', alignItems: 'center' }}>
+                            <Phone size={18} color="var(--text3)" />
+                          </span>
                           <input
                             type="tel"
                             id="loginPhone"
@@ -437,7 +460,9 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                           : t('login.password', 'Password *')}
                       </label>
                       <div className="input-with-icon" style={{ position: 'relative' }}>
-                        <span className="input-icon">🔑</span>
+                        <span className="input-icon" style={{ display: 'flex', alignItems: 'center' }}>
+                          <KeyRound size={18} color="var(--text3)" />
+                        </span>
                         <input
                           type={showPassword ? 'text' : 'password'}
                           id="loginPassword"
@@ -458,8 +483,9 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                           onClick={() => setShowPassword(!showPassword)}
                           title={showPassword ? 'Hide password' : 'Show password'}
                           tabIndex="-1"
+                          style={{ display: 'flex', alignItems: 'center' }}
                         >
-                          {showPassword ? '🙈' : '👁️'}
+                          {showPassword ? <EyeOff size={18} color="var(--text3)" /> : <Eye size={18} color="var(--text3)" />}
                         </button>
                       </div>
                       {errors.password && <div className="error-msg show">{errors.password}</div>}
@@ -472,7 +498,9 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                           {t('login.confirmPassword', 'Re-enter Password *')}
                         </label>
                         <div className="input-with-icon" style={{ position: 'relative' }}>
-                          <span className="input-icon">🔒</span>
+                          <span className="input-icon" style={{ display: 'flex', alignItems: 'center' }}>
+                            <Lock size={18} color="var(--text3)" />
+                          </span>
                           <input
                             type={showPassword ? 'text' : 'password'}
                             id="confirmPassword"
@@ -494,6 +522,7 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                       type="submit"
                       className="btn-submit login-submit"
                       disabled={isSubmitting}
+                      style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                     >
                       {isSubmitting ? (
                         <span className="btn-loading">
@@ -501,9 +530,13 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                           {t('login.processing')}
                         </span>
                       ) : mode === 'login' ? (
-                        t('login.signInBtn')
+                        <>
+                          <KeyRound size={18} /> {t('login.signInBtn')}
+                        </>
                       ) : (
-                        t('login.createAccountBtn')
+                        <>
+                          <User size={18} /> {t('login.createAccountBtn')}
+                        </>
                       )}
                     </button>
                   </>

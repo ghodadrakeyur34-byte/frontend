@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { PlusCircle, Home, Building2, UploadCloud, CheckCircle2 } from 'lucide-react';
 import { genId } from '../utils';
 
 export default function SellView({ onAddListing, currentUser, onRequireLogin }) {
@@ -159,7 +160,9 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin }) 
   return (
     <main id="page-sell" className="page active">
       <section className="sell-page">
-        <h1>{t('sell.title')}</h1>
+        <h1 style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+          <PlusCircle color="var(--accent)" size={32} /> {t('sell.title')}
+        </h1>
         <p>{t('sell.subtitle')}</p>
         <div className="form-card">
           <form id="sellForm" onSubmit={handleSubmit}>
@@ -171,15 +174,17 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin }) 
                   type="button"
                   className={`toggle-btn ${propType === 'house' ? 'active' : ''}`}
                   onClick={() => setPropType('house')}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
-                  🏠 {t('common.house')}
+                  <Home size={16} /> {t('common.house')}
                 </button>
                 <button
                   type="button"
                   className={`toggle-btn ${propType === 'plot' ? 'active' : ''}`}
                   onClick={() => setPropType('plot')}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
-                  📐 {t('common.plot')}
+                  <Building2 size={16} /> {t('common.plot')}
                 </button>
               </div>
             </div>
@@ -287,7 +292,9 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin }) 
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               >
-                <div className="icon">📷</div>
+                <div className="icon" style={{ display: 'flex', justifyContent: 'center' }}>
+                  <UploadCloud size={40} color="var(--accent)" />
+                </div>
                 <p>{t('sell.dragDrop')} <span>{t('sell.clickBrowse')}</span></p>
               </div>
               <input
@@ -344,7 +351,9 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin }) 
               </div>
             </div>
 
-            <button type="submit" className="btn-submit">{t('sell.submit')}</button>
+            <button type="submit" className="btn-submit" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <PlusCircle size={18} /> {t('sell.submit')}
+            </button>
           </form>
         </div>
       </section>
@@ -352,7 +361,9 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin }) 
       {/* SUCCESS MODAL */}
       <div className={`modal-overlay ${showModal ? 'show' : ''}`} id="successModal">
         <div className="modal">
-          <div className="checkmark">✅</div>
+          <div className="checkmark" style={{ display: 'flex', justifyContent: 'center' }}>
+            <CheckCircle2 size={54} color="var(--success)" />
+          </div>
           <h2>{t('sell.successTitle')}</h2>
           <p>{t('sell.successMessage')}</p>
           <button className="btn-submit" onClick={handleCloseModal}>{t('sell.viewListing')}</button>
