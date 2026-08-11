@@ -17,6 +17,9 @@ export default function Footer({ currentUser }) {
         <a onClick={() => handleNavClick('#help')} style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
           <Headphones size={15} /> {t('nav.helpDesk', 'Help Desk')}
         </a>
+        <a onClick={() => handleNavClick('#admin')} style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          🔐 Admin Panel
+        </a>
         {currentUser && (
           <a onClick={() => handleNavClick('#sell')} style={{ cursor: 'pointer' }}>{t('nav.postAd')}</a>
         )}

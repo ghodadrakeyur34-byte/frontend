@@ -76,7 +76,7 @@ function Dashboard({ token, onUnauthorized }) {
   useEffect(() => {
     apiFetch('/api/admin/stats', { headers: { 'x-admin-token': token } })
       .then(async r => {
-        if (r.status === 401) {
+        if (r.status === 401 || r.status === 403) {
           if (onUnauthorized) onUnauthorized();
           return;
         }
