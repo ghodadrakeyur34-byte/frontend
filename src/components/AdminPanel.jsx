@@ -30,8 +30,9 @@ function AdminLogin({ onLogin }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Login failed');
+      const isJson = res.headers.get('content-type')?.includes('application/json');
+      const data = isJson ? await res.json() : {};
+      if (!res.ok) throw new Error(data.error || `Login failed (${res.status})`);
       onLogin(data);
     } catch (err) {
       setError(err.message);
