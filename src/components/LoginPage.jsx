@@ -332,7 +332,7 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                         <input
                           type="text"
                           id="otpCode"
-                          placeholder="e.g. 123456"
+                          placeholder="------"
                           value={otpCode}
                           maxLength={6}
                           onChange={(e) =>
