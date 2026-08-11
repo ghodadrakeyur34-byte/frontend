@@ -665,9 +665,9 @@ function Users({ token, onUnauthorized }) {
     if (search) params.set('search', search);
     if (statusFilter) params.set('status', statusFilter);
 
-    fetch(`/api/admin/users?${params}`, { headers: { 'x-admin-token': token } })
+    apiFetch(`/api/admin/users?${params}`, { headers: { 'x-admin-token': token } })
       .then(async r => {
-        if (r.status === 401 && onUnauthorized) return onUnauthorized();
+        if ((r.status === 401 || r.status === 403) && onUnauthorized) return onUnauthorized();
         const d = await r.json();
         setUsers(Array.isArray(d) ? d : []);
         setLoading(false);
@@ -681,7 +681,7 @@ function Users({ token, onUnauthorized }) {
     const confirmMsg = status === 'banned' ? 'Ban this user?' : status === 'suspended' ? 'Suspend this user?' : 'Activate this user?';
     if (!window.confirm(confirmMsg)) return;
 
-    await fetch(`/api/admin/users/${encodeURIComponent(email)}/status`, {
+    await apiFetch(`/api/admin/users/${encodeURIComponent(email)}/status`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
       body: JSON.stringify({ status }),
@@ -689,8 +689,26 @@ function Users({ token, onUnauthorized }) {
     fetchUsers();
   };
 
+  const deleteUser = async (email, name) => {
+    const confirmMsg = `⚠️ ARE YOU SURE?\n\nThis will PERMANENTLY DELETE user "${name}" (${email}) and ALL their listings, inquiries, and data!\n\nThis action CANNOT be undone.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      const res = await apiFetch(`/api/admin/users/${encodeURIComponent(email)}`, {
+        method: 'DELETE',
+        headers: { 'x-admin-token': token },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to delete user.');
+      alert(data.message || 'User and all data deleted successfully.');
+      fetchUsers();
+    } catch (err) {
+      alert(err.message || 'Failed to delete user.');
+    }
+  };
+
   const toggleVerify = async (email, field, currentValue) => {
-    await fetch(`/api/admin/users/${encodeURIComponent(email)}/status`, {
+    await apiFetch(`/api/admin/users/${encodeURIComponent(email)}/status`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
       body: JSON.stringify({ verified: { [field]: !currentValue } }),
@@ -703,7 +721,7 @@ function Users({ token, onUnauthorized }) {
       setExpandedUser(null);
       return;
     }
-    const res = await fetch(`/api/admin/users/${encodeURIComponent(email)}`, { headers: { 'x-admin-token': token } });
+    const res = await apiFetch(`/api/admin/users/${encodeURIComponent(email)}`, { headers: { 'x-admin-token': token } });
     const data = await res.json();
     setUserListings(data.listings || []);
     setExpandedUser(email);
@@ -797,6 +815,7 @@ function Users({ token, onUnauthorized }) {
                         {(u.status === 'banned' || u.status === 'suspended') && (
                           <button className="admin-act-btn approve" title="Activate" onClick={() => updateUserStatus(u.email, 'active')}>✓</button>
                         )}
+                        <button className="admin-act-btn delete" title="Remove User & Delete All Data" onClick={() => deleteUser(u.email, u.name)}>🗑️</button>
                       </div>
                     </td>
                   </tr>
