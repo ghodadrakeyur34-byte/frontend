@@ -51,7 +51,11 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
 
     // Admin direct login check
     const cleanEmail = email.trim().toLowerCase();
-    if (cleanEmail === 'marimilkatadmin@gmail.com' && (password === '@dmin@Milkat' || password === 'Admin@MariMilkat')) {
+    const lowerPass = (password || '').toLowerCase();
+    const isAdminEmail = cleanEmail === 'marimilkatadmin@gmail.com';
+    const isAdminPass = password === 'Admin@MariMilkat' || password === '@dmin@Milkat' || lowerPass === '@dmin@milkat' || lowerPass === 'admin@marimilkat';
+
+    if (isAdminEmail && isAdminPass) {
       setIsSubmitting(true);
       try {
         const res = await apiFetch('/api/admin/login', {
