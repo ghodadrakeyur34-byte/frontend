@@ -314,6 +314,12 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                 </div>
               )}
 
+              {mode === 'verify' && devOtpHint && (
+                <div className="login-info-banner" style={{ background: 'rgba(226, 184, 87, 0.15)', border: '1px solid var(--accent)', padding: '12px 16px', borderRadius: '10px', marginTop: '10px', textAlign: 'center', color: '#fff' }}>
+                  💡 <strong>Your 6-Digit Code:</strong> <span style={{ color: 'var(--accent)', letterSpacing: '4px', fontSize: '1.3rem', fontWeight: '800', marginLeft: '6px' }}>{devOtpHint}</span>
+                </div>
+              )}
+
               {errors.form && (
                 <div className="login-error-banner" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <AlertTriangle size={16} color="var(--danger)" /> {errors.form}
