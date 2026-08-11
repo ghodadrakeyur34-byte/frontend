@@ -60,6 +60,8 @@ export function getCookie(name) {
   return match ? decodeURIComponent(match[2]) : null;
 }
 
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://backend-6s6f.onrender.com' : '');
+
 /**
  * Wrapper around fetch that automatically includes credentials and attaches
  * the X-XSRF-TOKEN header on state-changing requests (POST, PUT, DELETE).
@@ -68,13 +70,15 @@ export async function apiFetch(url, options = {}) {
   const method = (options.method || 'GET').toUpperCase();
   const headers = { ...(options.headers || {}) };
 
+  const targetUrl = url.startsWith('/api') ? `${API_BASE}${url}` : url;
+
   options.credentials = 'include';
 
   if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
     let token = getCookie('XSRF-TOKEN');
     if (!token) {
       try {
-        const csrfRes = await fetch('/api/csrf-token', { credentials: 'include' });
+        const csrfRes = await fetch(`${API_BASE}/api/csrf-token`, { credentials: 'include' });
         const data = await csrfRes.json();
         token = data.csrfToken || getCookie('XSRF-TOKEN');
       } catch (e) {
@@ -86,5 +90,5 @@ export async function apiFetch(url, options = {}) {
     }
   }
 
-  return fetch(url, { ...options, headers });
+  return fetch(targetUrl, { ...options, headers });
 }
