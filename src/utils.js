@@ -60,7 +60,7 @@ export function getCookie(name) {
   return match ? decodeURIComponent(match[2]) : null;
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://backend-fkfj.onrender.com' : '');
 
 /**
  * Wrapper around fetch that automatically includes credentials and attaches
