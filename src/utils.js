@@ -60,7 +60,7 @@ export function getCookie(name) {
   return match ? decodeURIComponent(match[2]) : null;
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://backend-6s6f.onrender.com' : '');
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://back-tau-one.vercel.app' : '');
 
 /**
  * Wrapper around fetch that automatically includes credentials and attaches
