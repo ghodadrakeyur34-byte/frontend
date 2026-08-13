@@ -348,6 +348,9 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                         />
                       </div>
                       {errors.otp && <div className="error-msg show">{errors.otp}</div>}
+                      <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '6px', textAlign: 'center' }}>
+                        💡 Didn't receive the email? Please check your <strong>Spam / Junk folder</strong>.
+                      </p>
                     </div>
 
                     <button
