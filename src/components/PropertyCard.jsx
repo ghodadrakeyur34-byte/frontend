@@ -31,7 +31,7 @@ export default function PropertyCard({ listing }) {
   };
 
   const imgElement = images && images.length > 0 ? (
-    <img src={images[0]} alt={title} />
+    <img src={images[0]} alt={title} loading="lazy" decoding="async" />
   ) : (
     <div className="no-img-placeholder">
       <Home size={32} color="var(--text3)" />

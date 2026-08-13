@@ -1,19 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import HomeView from './components/HomeView';
-import BrowseView from './components/BrowseView';
-import SellView from './components/SellView';
-import DetailView from './components/DetailView';
-import MyListingsView from './components/MyListingsView';
-import LoginPage from './components/LoginPage';
 import LocationModal from './components/LocationModal';
-import AdminPanel from './components/AdminPanel';
-import HelpDeskView from './components/HelpDeskView';
 import { canChangePrice, apiFetch } from './utils';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
+
+// Lazy load route components for minimal initial bundle size and instant FCP
+const BrowseView = lazy(() => import('./components/BrowseView'));
+const SellView = lazy(() => import('./components/SellView'));
+const DetailView = lazy(() => import('./components/DetailView'));
+const MyListingsView = lazy(() => import('./components/MyListingsView'));
+const LoginPage = lazy(() => import('./components/LoginPage'));
+const AdminPanel = lazy(() => import('./components/AdminPanel'));
+const HelpDeskView = lazy(() => import('./components/HelpDeskView'));
 
 const USER_KEY = 'propbazaar_user';
 
@@ -402,9 +404,21 @@ export default function App() {
     );
   };
 
+  const viewLoadingFallback = (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '4px solid rgba(0,0,0,0.1)', borderTopColor: '#0070f3', animation: 'spin 1s linear infinite' }}></div>
+      <p style={{ color: '#666' }}>{t('common.loading')}</p>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+
   // If admin route, render standalone (no Navbar/Footer)
   if (currentHash === '#admin') {
-    return <AdminPanel />;
+    return (
+      <Suspense fallback={viewLoadingFallback}>
+        <AdminPanel />
+      </Suspense>
+    );
   }
 
   return (
@@ -418,7 +432,9 @@ export default function App() {
         userLocation={userLocation}
       />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        {renderView()}
+        <Suspense fallback={viewLoadingFallback}>
+          {renderView()}
+        </Suspense>
       </div>
       <Footer currentUser={currentUser} />
 

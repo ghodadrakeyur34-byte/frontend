@@ -12,4 +12,17 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/leaflet')) return 'leaflet';
+          if (id.includes('node_modules/lucide-react')) return 'icons';
+          if (id.includes('node_modules/animejs') || id.includes('node_modules/lenis')) return 'animations';
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('node_modules/i18next')) return 'vendor';
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+  },
 })
