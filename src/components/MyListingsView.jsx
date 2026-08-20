@@ -10,7 +10,12 @@ export default function MyListingsView({ listings, currentUser, onDeleteListing 
   const [filterType, setFilterType] = useState('all');
 
   // Filter listings owned by the current user
-  const myListings = listings.filter((l) => l.ownerId === currentUser.phone);
+  const myListings = listings.filter((l) => {
+    if (!currentUser) return false;
+    if (currentUser.phone && l.ownerId === currentUser.phone) return true;
+    if (currentUser.email && (l.ownerId === currentUser.email || l.contact?.email === currentUser.email)) return true;
+    return false;
+  });
 
   const houses = myListings.filter((l) => l.type === 'house');
   const plots = myListings.filter((l) => l.type === 'plot');

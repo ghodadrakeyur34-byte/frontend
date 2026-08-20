@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PlusCircle, Home, Building2, UploadCloud, CheckCircle2 } from 'lucide-react';
+import { PlusCircle, Home, Building2, UploadCloud, CheckCircle2, Lock, LogIn, X } from 'lucide-react';
 import { genId } from '../utils';
 
-export default function SellView({ onAddListing, currentUser, onRequireLogin }) {
+export default function SellView({ onAddListing, currentUser, onRequireLogin, userLocation }) {
   const { t } = useTranslation();
   const [propType, setPropType] = useState('house');
   const [title, setTitle] = useState('');
@@ -15,6 +15,27 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin }) 
   const [city, setCity] = useState('');
   const [name, setName] = useState(currentUser?.name || '');
   const [phone, setPhone] = useState(currentUser?.phone || '');
+
+  // Load saved draft on mount if available
+  useEffect(() => {
+    try {
+      const savedDraft = sessionStorage.getItem('sell_form_draft');
+      if (savedDraft) {
+        const draft = JSON.parse(savedDraft);
+        if (draft.propType) setPropType(draft.propType);
+        if (draft.title) setTitle(draft.title);
+        if (draft.desc) setDesc(draft.desc);
+        if (draft.price) setPrice(draft.price);
+        if (draft.size) setSize(draft.size);
+        if (draft.unit) setUnit(draft.unit);
+        if (draft.area) setArea(draft.area);
+        if (draft.city) setCity(draft.city);
+        if (draft.name && !currentUser) setName(draft.name);
+        if (draft.phone && !currentUser) setPhone(draft.phone);
+        if (draft.uploadedImages && draft.uploadedImages.length > 0) setUploadedImages(draft.uploadedImages);
+      }
+    } catch (e) {}
+  }, []);
 
   // Sync fields when user logs in mid-form
   useEffect(() => {
@@ -28,9 +49,28 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin }) 
   const [isDragOver, setIsDragOver] = useState(false);
   const [errors, setErrors] = useState({});
   const [showModal, setShowModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [createdId, setCreatedId] = useState(null);
 
   const fileInputRef = useRef(null);
+
+  const saveDraft = () => {
+    try {
+      sessionStorage.setItem('sell_form_draft', JSON.stringify({
+        propType,
+        title,
+        desc,
+        price,
+        size,
+        unit,
+        area,
+        city,
+        name: currentUser ? currentUser.name : name,
+        phone: currentUser ? currentUser.phone : phone,
+        uploadedImages,
+      }));
+    } catch (e) {}
+  };
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -103,9 +143,10 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin }) 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Require login before posting
+    // Check if user is logged in — show popup if not logged in
     if (!currentUser) {
-      onRequireLogin();
+      saveDraft();
+      setShowLoginModal(true);
       return;
     }
 
@@ -138,18 +179,31 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin }) 
         phone: phone.trim(),
       },
       date: new Date().toISOString().split('T')[0],
-      ownerId: currentUser.phone,
+      ownerId: currentUser?.phone || currentUser?.email || 'user',
     };
 
     onAddListing(newListing);
     setCreatedId(id);
     setShowModal(true);
+    try {
+      sessionStorage.removeItem('sell_form_draft');
+    } catch (e) {}
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
     if (createdId) {
       window.location.hash = `#detail/${createdId}`;
+    }
+  };
+
+  const handleProceedToLogin = () => {
+    saveDraft();
+    setShowLoginModal(false);
+    if (onRequireLogin) {
+      onRequireLogin();
+    } else {
+      window.location.hash = '#login';
     }
   };
 
@@ -332,7 +386,7 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin }) 
                 <input
                   type="text"
                   id="propName"
-                  placeholder={t('sell.namePlaceholder')}
+                  placeholder={t('sell.namePlaceholder', 'Enter Your Name')}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
@@ -343,7 +397,7 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin }) 
                 <input
                   type="tel"
                   id="propPhone"
-                  placeholder={t('sell.phonePlaceholder')}
+                  placeholder={t('sell.phonePlaceholder', 'Enter Your Phone Number')}
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                 />
@@ -357,6 +411,93 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin }) 
           </form>
         </div>
       </section>
+
+      {/* LOGIN REQUIRED POPUP MODAL */}
+      <div
+        className={`modal-overlay ${showLoginModal ? 'show' : ''}`}
+        id="loginRequiredModal"
+        onClick={() => setShowLoginModal(false)}
+      >
+        <div
+          className="modal"
+          onClick={(e) => e.stopPropagation()}
+          style={{ maxWidth: '440px', padding: '2.5rem 2rem', position: 'relative' }}
+        >
+          <button
+            type="button"
+            onClick={() => setShowLoginModal(false)}
+            style={{
+              position: 'absolute',
+              top: '16px',
+              right: '16px',
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text3)',
+              cursor: 'pointer',
+              fontSize: '1.2rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '4px',
+              borderRadius: '50%'
+            }}
+            title="Close"
+          >
+            <X size={20} />
+          </button>
+
+          <div
+            className="checkmark"
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              background: 'rgba(226, 184, 87, 0.15)',
+              borderColor: 'var(--accent)',
+              color: 'var(--accent)',
+              marginBottom: '1.25rem'
+            }}
+          >
+            <Lock size={32} />
+          </div>
+
+          <h2>{t('sell.loginRequiredTitle', 'Login Required to Post')}</h2>
+          <p style={{ color: 'var(--text2)', lineHeight: '1.6', marginBottom: '1.75rem' }}>
+            {t('sell.loginRequiredMessage', 'You need to be logged in to post your property. Please sign in or create an account to proceed.')}
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <button
+              type="button"
+              className="btn-submit"
+              onClick={handleProceedToLogin}
+              style={{
+                width: '100%',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              <LogIn size={18} /> {t('sell.loginToPostBtn', 'Sign In / Register to Post')}
+            </button>
+            <button
+              type="button"
+              className="action-btn buy"
+              onClick={() => setShowLoginModal(false)}
+              style={{
+                width: '100%',
+                justifyContent: 'center',
+                padding: '0.75rem 1.5rem',
+                fontSize: '0.95rem',
+                borderRadius: 'var(--r-md)'
+              }}
+            >
+              {t('common.cancel', 'Cancel')}
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* SUCCESS MODAL */}
       <div className={`modal-overlay ${showModal ? 'show' : ''}`} id="successModal">

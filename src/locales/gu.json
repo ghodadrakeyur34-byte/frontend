@@ -68,15 +68,18 @@
     "dragDrop": "અહીં છબીઓ ખેંચીને મૂકો અથવા",
     "clickBrowse": "બ્રાઉઝ કરવા ક્લિક કરો",
     "yourName": "તમારું નામ *",
-    "namePlaceholder": "દા.ત. અહેમદ ખાન",
+    "namePlaceholder": "તમારું નામ દાખલ કરો",
     "nameError": "નામ જરૂરી છે",
     "phoneNumber": "ફોન નંબર *",
-    "phonePlaceholder": "દા.ત. 0300-1234567",
+    "phonePlaceholder": "તમારો ફોન નંબર દાખલ કરો",
     "phoneError": "ફોન નંબર જરૂરી છે",
     "submit": "મારી મિલકત પોસ્ટ કરો",
     "successTitle": "જાહેરાત પોસ્ટ થઈ!",
     "successMessage": "તમારી મિલકત હવે મારી મિલકત પર લાઇવ છે.",
-    "viewListing": "મારી જાહેરાત જુઓ"
+    "viewListing": "મારી જાહેરાત જુઓ",
+    "loginRequiredTitle": "મિલકત પોસ્ટ કરવા સાઇન ઇન કરો",
+    "loginRequiredMessage": "મારી મિલકત પર મિલકત લિસ્ટ કરવા માટે તમારે સાઇન ઇન કરવું જરૂરી છે. કૃપા કરીને સાઇન ઇન કરો અથવા નવું એકાઉન્ટ બનાવો.",
+    "loginToPostBtn": "પોસ્ટ કરવા માટે સાઇન ઇન કરો"
   },
   "detail": {
     "back": "પાછા",
@@ -159,7 +162,14 @@
     "createOne": "એક બનાવો",
     "haveAccount": "પહેલેથી એકાઉન્ટ છે?",
     "signInLink": "સાઇન ઇન",
-    "formError": "કંઈક ખોટું થયું. કૃપા કરીને ફરી પ્રયાસ કરો."
+    "formError": "કંઈક ખોટું થયું. કૃપા કરીને ફરી પ્રયાસ કરો.",
+    "orDivider": "અથવા",
+    "signInWithGoogle": "Google સાથે સાઇન ઇન કરો",
+    "signUpWithGoogle": "Google સાથે સાઇન અપ કરો",
+    "continueWithGoogle": "Google સાથે આગળ વધો",
+    "verifyingWithGoogle": "Google સાથે ચકાસણી થઈ રહી છે...",
+    "googleVerified": "Google દ્વારા પ્રમાણિત",
+    "googleFailed": "Google સાઇન ઇન નિષ્ફળ થયું. કૃપા કરીને ફરી પ્રયાસ કરો."
   },
   "common": {
     "house": "મકાન",

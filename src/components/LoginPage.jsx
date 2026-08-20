@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Home, Mail, CheckCircle2, Lock, KeyRound, User, Phone, Eye, EyeOff, RotateCw, ArrowLeft, ShieldCheck, Info, AlertTriangle } from 'lucide-react';
+import GoogleSignInButton from './GoogleSignInButton';
 import { apiFetch } from '../utils';
 
 export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
@@ -318,6 +319,25 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                 <div className="login-error-banner" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <AlertTriangle size={16} color="var(--danger)" /> {errors.form}
                 </div>
+              )}
+
+              {mode !== 'verify' && (
+                <>
+                  <GoogleSignInButton
+                    text={mode === 'signup' ? 'signup_with' : 'signin_with'}
+                    onAuthSuccess={(user) => {
+                      setInfoMessage('Google sign-in verified! Redirecting...');
+                      setTimeout(() => {
+                        if (onAuthSuccess) onAuthSuccess(user);
+                      }, 400);
+                    }}
+                    onError={(errMsg) => setErrors({ form: errMsg })}
+                    disabled={isSubmitting}
+                  />
+                  <div className="auth-divider">
+                    <span>{t('login.orDivider', 'OR')}</span>
+                  </div>
+                </>
               )}
 
               <form onSubmit={handleSubmit} className="login-form" noValidate>

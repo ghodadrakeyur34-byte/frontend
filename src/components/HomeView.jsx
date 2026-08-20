@@ -99,11 +99,9 @@ export default function HomeView({ listings, onSearch, userLocation, onRequestLo
             <button className="action-btn buy btn-shimmer" onClick={() => window.location.hash = '#browse'} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
               <Search size={18} /> {t('hero.wantToBuy')}
             </button>
-            {currentUser && (
-              <button className="action-btn sell btn-shimmer" onClick={() => window.location.hash = '#sell'} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                <PlusCircle size={18} /> {t('hero.wantToSell')}
-              </button>
-            )}
+            <button className="action-btn sell btn-shimmer" onClick={() => window.location.hash = '#sell'} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <PlusCircle size={18} /> {t('hero.wantToSell')}
+            </button>
           </div>
         </div>
       </section>

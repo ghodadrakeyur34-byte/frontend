@@ -66,16 +66,14 @@ export default function Navbar({ currentHash, currentUser, onLogout, onShowLogin
             {t('nav.browse')}
           </a>
         </li>
-        {currentUser && (
-          <li>
-            <a
-              onClick={() => handleNavClick('#sell')}
-              className={currentHash === '#sell' ? 'active' : ''}
-            >
-              {t('nav.postAd')}
-            </a>
-          </li>
-        )}
+        <li>
+          <a
+            onClick={() => handleNavClick('#sell')}
+            className={currentHash === '#sell' ? 'active' : ''}
+          >
+            {t('nav.postAd')}
+          </a>
+        </li>
         {currentUser && (
           <li>
             <a
@@ -113,10 +111,22 @@ export default function Navbar({ currentHash, currentUser, onLogout, onShowLogin
               onClick={() => setShowUserMenu(!showUserMenu)}
               title={currentUser.name}
             >
-              <span className="user-avatar-circle">
-                {currentUser.name.charAt(0).toUpperCase()}
+              {currentUser.avatar ? (
+                <img
+                  src={currentUser.avatar}
+                  alt={currentUser.name}
+                  className="user-avatar-img"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <span className="user-avatar-circle" style={{ display: currentUser.avatar ? 'none' : 'flex' }}>
+                {(currentUser.name || 'U').charAt(0).toUpperCase()}
               </span>
-              <span className="user-avatar-name">{currentUser.name.split(' ')[0]}</span>
+              <span className="user-avatar-name">{(currentUser.name || 'User').split(' ')[0]}</span>
             </button>
 
             {showUserMenu && (
@@ -124,6 +134,11 @@ export default function Navbar({ currentHash, currentUser, onLogout, onShowLogin
                 <div className="user-dropdown-header">
                   <strong>{currentUser.name}</strong>
                   <span>{currentUser.email}</span>
+                  {currentUser.verified?.google && (
+                    <span className="google-badge">
+                      ✓ {t('login.googleVerified', 'Verified with Google')}
+                    </span>
+                  )}
                 </div>
                 <button onClick={() => handleNavClick('#my-listings')} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Building2 size={16} /> {t('nav.myListings')}

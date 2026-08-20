@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import GoogleSignInButton from './GoogleSignInButton';
 
 export default function LoginModal({ onLogin, onClose }) {
   const [name, setName] = useState('');
@@ -27,6 +28,26 @@ export default function LoginModal({ onLogin, onClose }) {
         <div className="login-icon">👤</div>
         <h2>Sign In to Mari Milkat</h2>
         <p>Enter your details to access your listings and post properties.</p>
+
+        <GoogleSignInButton
+          text="signin_with"
+          onAuthSuccess={(user) => {
+            if (onLogin) onLogin(user);
+            if (onClose) onClose();
+          }}
+          onError={(err) => setErrors({ form: err })}
+        />
+
+        {errors.form && (
+          <div className="error-msg show" style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--danger)' }}>
+            {errors.form}
+          </div>
+        )}
+
+        <div className="auth-divider">
+          <span>OR</span>
+        </div>
+
         <form onSubmit={handleSubmit} className="login-form">
           <div className={`form-group ${errors.name ? 'has-error' : ''}`}>
             <label htmlFor="loginName">Your Name *</label>

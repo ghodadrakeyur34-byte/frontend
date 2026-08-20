@@ -68,15 +68,18 @@
     "dragDrop": "Drag & drop images here or",
     "clickBrowse": "click to browse",
     "yourName": "Your Name *",
-    "namePlaceholder": "e.g. Ahmed Khan",
+    "namePlaceholder": "Enter Your Name",
     "nameError": "Name is required",
     "phoneNumber": "Phone Number *",
-    "phonePlaceholder": "e.g. 0300-1234567",
+    "phonePlaceholder": "Enter Your Phone Number",
     "phoneError": "Phone number is required",
     "submit": "Post My Property",
     "successTitle": "Listing Posted!",
     "successMessage": "Your property is now live on Mari Milkat.",
-    "viewListing": "View My Listing"
+    "viewListing": "View My Listing",
+    "loginRequiredTitle": "Login Required to Post",
+    "loginRequiredMessage": "You need to be logged in to post your property. Please sign in or create an account to proceed.",
+    "loginToPostBtn": "Sign In / Register to Post"
   },
   "detail": {
     "back": "Back",
@@ -159,7 +162,14 @@
     "createOne": "Create one",
     "haveAccount": "Already have an account?",
     "signInLink": "Sign in",
-    "formError": "Something went wrong. Please try again."
+    "formError": "Something went wrong. Please try again.",
+    "orDivider": "OR",
+    "signInWithGoogle": "Sign in with Google",
+    "signUpWithGoogle": "Sign up with Google",
+    "continueWithGoogle": "Continue with Google",
+    "verifyingWithGoogle": "Verifying with Google...",
+    "googleVerified": "Verified with Google",
+    "googleFailed": "Google sign-in failed. Please try again."
   },
   "common": {
     "house": "House",

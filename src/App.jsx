@@ -217,7 +217,7 @@ export default function App() {
   // ===== LISTINGS CRUD =====
   const handleAddListing = async (newListing) => {
     const listingWithOwner = currentUser
-      ? { ...newListing, ownerId: currentUser.phone }
+      ? { ...newListing, ownerId: currentUser.phone || currentUser.email || 'user' }
       : newListing;
 
     try {
@@ -243,7 +243,7 @@ export default function App() {
       const res = await apiFetch(`/api/listings/${listingId}`, {
         method: 'DELETE',
         headers: {
-          'Owner-Phone': currentUser?.phone || '',
+          'Owner-Phone': currentUser?.phone || currentUser?.email || '',
         },
       });
       if (!res.ok) {
@@ -263,7 +263,7 @@ export default function App() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Owner-Phone': currentUser?.phone || '',
+          'Owner-Phone': currentUser?.phone || currentUser?.email || '',
         },
         body: JSON.stringify({ price: newPrice }),
       });
@@ -339,10 +339,6 @@ export default function App() {
       );
     }
     if (hash === '#sell') {
-      if (!currentUser) {
-        navigateToLogin('#sell');
-        return null;
-      }
       return (
         <SellView
           currentUser={currentUser}

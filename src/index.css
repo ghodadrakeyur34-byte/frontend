@@ -2061,6 +2061,107 @@ footer a:hover {
   color: var(--accent-light);
 }
 
+/* ===== GOOGLE SIGN IN STYLES ===== */
+.google-auth-section {
+  margin-bottom: 1.25rem;
+  width: 100%;
+}
+
+.google-btn-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+}
+
+.google-btn-custom {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-sm);
+  padding: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.google-btn-custom:hover {
+  background: var(--bg3);
+  border-color: var(--border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.google-btn-custom:active {
+  transform: translateY(0);
+}
+
+.google-btn-custom:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.google-icon-svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Auth OR Divider */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.25rem 0;
+  color: var(--text3);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border2);
+}
+
+.auth-divider span {
+  padding: 0 0.85rem;
+}
+
+/* Google User Profile Elements */
+.user-avatar-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent);
+}
+
+.google-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(66, 133, 244, 0.1);
+  color: #4285F4;
+  border: 1px solid rgba(66, 133, 244, 0.25);
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
 /* NAVBAR USER MENU */
 .nav-right {
   display: flex;
