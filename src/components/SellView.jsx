@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PlusCircle, Home, Building2, UploadCloud, CheckCircle2, Lock, LogIn, X } from 'lucide-react';
+import { PlusCircle, Home, Building2, UploadCloud, CheckCircle2, Lock, LogIn, X, MapPin } from 'lucide-react';
 import { genId } from '../utils';
+import LocationPickerMap from './LocationPickerMap';
 
-export default function SellView({ onAddListing, currentUser, onRequireLogin, userLocation }) {
+export default function SellView({ onAddListing, currentUser, onRequireLogin, userLocation, onRequestLocation }) {
   const { t } = useTranslation();
   const [propType, setPropType] = useState('house');
   const [title, setTitle] = useState('');
@@ -15,6 +16,7 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
   const [city, setCity] = useState('');
   const [name, setName] = useState(currentUser?.name || '');
   const [phone, setPhone] = useState(currentUser?.phone || '');
+  const [listingCoords, setListingCoords] = useState(null);
 
   // Load saved draft on mount if available
   useEffect(() => {
@@ -30,6 +32,9 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
         if (draft.unit) setUnit(draft.unit);
         if (draft.area) setArea(draft.area);
         if (draft.city) setCity(draft.city);
+        if (draft.listingCoords) {
+          setListingCoords(draft.listingCoords);
+        }
         if (draft.name && !currentUser) setName(draft.name);
         if (draft.phone && !currentUser) setPhone(draft.phone);
         if (draft.uploadedImages && draft.uploadedImages.length > 0) setUploadedImages(draft.uploadedImages);
@@ -65,11 +70,52 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
         unit,
         area,
         city,
+        listingCoords,
         name: currentUser ? currentUser.name : name,
         phone: currentUser ? currentUser.phone : phone,
         uploadedImages,
       }));
     } catch (e) {}
+  };
+
+  const cityCoords = {
+    Veraval: { lat: 20.9082, lng: 70.3703 },
+    Una: { lat: 20.8227, lng: 71.0421 },
+    Junagadh: { lat: 21.5222, lng: 70.4579 },
+  };
+
+  const getDistanceKm = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Earth radius in km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  const handleMapCoordsChange = (newCoords) => {
+    setListingCoords(newCoords);
+
+    // If city is not selected yet, automatically select the closest city
+    if (!city) {
+      let nearestCity = 'Veraval';
+      let minDistance = Infinity;
+
+      Object.entries(cityCoords).forEach(([cityName, coords]) => {
+        const dist = getDistanceKm(newCoords.lat, newCoords.lng, coords.lat, coords.lng);
+        if (dist < minDistance) {
+          minDistance = dist;
+          nearestCity = cityName;
+        }
+      });
+
+      setCity(nearestCity);
+      setErrors((prev) => ({ ...prev, city: false }));
+    }
   };
 
   const handleDragOver = (e) => {
@@ -152,13 +198,13 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
 
     if (!validate()) return;
 
-    const cityCoords = {
-      Veraval: { lat: 20.9082, lng: 70.3703 },
-      Una: { lat: 20.8227, lng: 71.0421 },
-      Junagadh: { lat: 21.5222, lng: 70.4579 },
-    };
-
-    const defaultCoord = cityCoords[city.trim()] || (userLocation || { lat: 20.9082, lng: 70.3703 });
+    const defaultCoord = listingCoords || cityCoords[city.trim()] || (userLocation || { lat: 20.9082, lng: 70.3703 });
+    const finalLat = listingCoords?.lat !== undefined && listingCoords?.lat !== null
+      ? Number(listingCoords.lat)
+      : defaultCoord.lat;
+    const finalLng = listingCoords?.lng !== undefined && listingCoords?.lng !== null
+      ? Number(listingCoords.lng)
+      : defaultCoord.lng;
 
     const id = genId();
     const newListing = {
@@ -171,8 +217,10 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
       unit,
       area: area.trim(),
       city: city.trim(),
-      lat: defaultCoord.lat,
-      lng: defaultCoord.lng,
+      lat: finalLat,
+      lng: finalLng,
+      latitude: finalLat,
+      longitude: finalLng,
       images: uploadedImages,
       contact: {
         name: name.trim(),
@@ -220,6 +268,10 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
         <p>{t('sell.subtitle')}</p>
         <div className="form-card">
           <form id="sellForm" onSubmit={handleSubmit}>
+            {/* Hidden inputs to bind latitude and longitude to form */}
+            <input type="hidden" name="latitude" id="formLatitude" value={listingCoords?.lat ?? ''} />
+            <input type="hidden" name="longitude" id="formLongitude" value={listingCoords?.lng ?? ''} />
+
             {/* Category Toggle */}
             <div className="form-group">
               <label>{t('sell.propertyType')}</label>
@@ -324,7 +376,10 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
                 <select
                   id="propCity"
                   value={city}
-                  onChange={(e) => setCity(e.target.value)}
+                  onChange={(e) => {
+                    setCity(e.target.value);
+                    if (errors.city) setErrors((prev) => ({ ...prev, city: false }));
+                  }}
                 >
                   <option value="">{t('sell.selectCity')}</option>
                   <option value="Veraval">Veraval(વેરાવળ)</option>
@@ -334,6 +389,14 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
                 <div className="error-msg">{t('sell.cityError')}</div>
               </div>
             </div>
+
+            {/* Interactive Map: Location Picker with draggable marker and Current Location */}
+            <LocationPickerMap
+              coords={listingCoords}
+              onChange={handleMapCoordsChange}
+              selectedCity={city}
+              onRequestLocation={onRequestLocation}
+            />
 
             {/* Photos */}
             <div className="form-group">

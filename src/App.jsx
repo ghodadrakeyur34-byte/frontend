@@ -345,6 +345,7 @@ export default function App() {
           onAddListing={handleAddListing}
           onRequireLogin={() => navigateToLogin('#sell')}
           userLocation={userLocation}
+          onRequestLocation={handleRequestLocation}
         />
       );
     }

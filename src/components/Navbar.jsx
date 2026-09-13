@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Home, MapPin, Target, Building2, PlusCircle, ShieldCheck, LogOut, User } from 'lucide-react';
+import { Home, Building2, PlusCircle, ShieldCheck, LogOut, User } from 'lucide-react';
 
 export default function Navbar({ currentHash, currentUser, onLogout, onShowLogin, onRequestLocation, userLocation }) {
   const { t, i18n } = useTranslation();
@@ -86,20 +86,8 @@ export default function Navbar({ currentHash, currentUser, onLogout, onShowLogin
         )}
       </ul>
 
-      {/* Right-side: location badge + language toggle + user indicator */}
+      {/* Right-side: language toggle + user indicator */}
       <div className="nav-right">
-        {userLocation ? (
-          <button className="nav-loc-btn active" onClick={onRequestLocation} title="Location active" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-            <MapPin size={15} /> Nearby
-          </button>
-        ) : (
-          onRequestLocation && (
-            <button className="nav-loc-btn" onClick={onRequestLocation} title="Enable location" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              <Target size={15} /> Location
-            </button>
-          )
-        )}
-
         <button className="lang-toggle" onClick={toggleLanguage} title="Switch language">
           {i18n.language === 'en' ? t('lang.gu') : t('lang.en')}
         </button>
