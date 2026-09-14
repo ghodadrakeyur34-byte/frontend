@@ -186,7 +186,7 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Check if user is logged in — show popup if not logged in
@@ -230,12 +230,16 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
       ownerId: currentUser?.phone || currentUser?.email || 'user',
     };
 
-    onAddListing(newListing);
-    setCreatedId(id);
-    setShowModal(true);
     try {
-      sessionStorage.removeItem('sell_form_draft');
-    } catch (e) {}
+      const created = await onAddListing(newListing);
+      setCreatedId(created?.id || id);
+      setShowModal(true);
+      try {
+        sessionStorage.removeItem('sell_form_draft');
+      } catch (e) {}
+    } catch (err) {
+      // Error alert handled by onAddListing
+    }
   };
 
   const handleCloseModal = () => {

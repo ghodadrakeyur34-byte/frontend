@@ -131,7 +131,11 @@ export default function App() {
     async function loadListings() {
       try {
         setLoading(true);
-        const res = await apiFetch('/api/listings');
+        const headers = {};
+        if (currentUser?.phone || currentUser?.email) {
+          headers['Owner-Phone'] = currentUser.phone || currentUser.email;
+        }
+        const res = await apiFetch('/api/listings', { headers });
         if (!res.ok) throw new Error('Failed to fetch listings from server.');
         const data = await res.json();
         setListings(data);
@@ -143,7 +147,7 @@ export default function App() {
       }
     }
     loadListings();
-  }, []);
+  }, [currentUser]);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -232,9 +236,11 @@ export default function App() {
       }
       const created = await res.json();
       setListings((prevListings) => [created, ...prevListings]);
+      return created;
     } catch (err) {
       console.error('Add listing error:', err);
       alert(err.message || 'Failed to save listing to server. Please try again.');
+      throw err;
     }
   };
 
