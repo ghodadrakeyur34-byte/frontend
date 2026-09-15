@@ -861,7 +861,7 @@ function Reports({ token, onUnauthorized }) {
 
   const fetchReports = useCallback(() => {
     const params = tab !== 'all' ? `?status=${tab}` : '';
-    fetch(`/api/admin/reports${params}`, { headers: { 'x-admin-token': token } })
+    apiFetch(`/api/admin/reports${params}`, { headers: { 'x-admin-token': token } })
       .then(async r => {
         if (r.status === 401 && onUnauthorized) return onUnauthorized();
         const d = await r.json();
@@ -874,7 +874,7 @@ function Reports({ token, onUnauthorized }) {
   useEffect(() => { fetchReports(); }, [fetchReports]);
 
   const handleResolve = async (status) => {
-    await fetch(`/api/admin/reports/${resolveModal.id}`, {
+    await apiFetch(`/api/admin/reports/${resolveModal.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
       body: JSON.stringify({ status, adminNote }),
@@ -991,7 +991,7 @@ function Categories({ token, onUnauthorized }) {
   const [newItem, setNewItem] = useState({});
 
   useEffect(() => {
-    fetch('/api/admin/categories', { headers: { 'x-admin-token': token } })
+    apiFetch('/api/admin/categories', { headers: { 'x-admin-token': token } })
       .then(async r => {
         if (r.status === 401 && onUnauthorized) return onUnauthorized();
         const d = await r.json();
@@ -1003,7 +1003,7 @@ function Categories({ token, onUnauthorized }) {
 
   const save = async () => {
     setSaving(true);
-    await fetch('/api/admin/categories', {
+    await apiFetch('/api/admin/categories', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
       body: JSON.stringify(categories),
