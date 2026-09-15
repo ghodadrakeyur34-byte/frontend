@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PlusCircle, Home, Building2, UploadCloud, CheckCircle2, Lock, LogIn, X, MapPin } from 'lucide-react';
-import { genId } from '../utils';
+import { genId, saveCreatedListingId } from '../utils';
 import LocationPickerMap from './LocationPickerMap';
 
 export default function SellView({ onAddListing, currentUser, onRequireLogin, userLocation, onRequestLocation }) {
@@ -225,14 +225,27 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
       contact: {
         name: name.trim(),
         phone: phone.trim(),
+        email: currentUser?.email || '',
       },
       date: new Date().toISOString().split('T')[0],
-      ownerId: currentUser?.phone || currentUser?.email || 'user',
+      ownerId: currentUser?.email || currentUser?.phone || 'user',
+      ownerEmail: currentUser?.email || '',
+      ownerPhone: currentUser?.phone || phone.trim() || '',
     };
+
+    // If Google user has no phone in profile, link the phone entered in this form
+    if (currentUser && !currentUser.phone && phone.trim()) {
+      try {
+        currentUser.phone = phone.trim();
+        localStorage.setItem('propbazaar_user', JSON.stringify(currentUser));
+      } catch (e) {}
+    }
 
     try {
       const created = await onAddListing(newListing);
-      setCreatedId(created?.id || id);
+      const resultingId = created?.id || id;
+      setCreatedId(resultingId);
+      saveCreatedListingId(resultingId, currentUser);
       setShowModal(true);
       try {
         sessionStorage.removeItem('sell_form_draft');

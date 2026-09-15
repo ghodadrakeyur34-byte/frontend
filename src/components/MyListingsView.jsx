@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { PlusCircle, Home, Building2, Trash2, Inbox, AlertTriangle } from 'lucide-react';
-import { formatPrice, timeAgo } from '../utils';
+import { formatPrice, timeAgo, isListingOwner } from '../utils';
 import PropertyCard from './PropertyCard';
 
 export default function MyListingsView({ listings, currentUser, onDeleteListing }) {
@@ -10,12 +10,7 @@ export default function MyListingsView({ listings, currentUser, onDeleteListing 
   const [filterType, setFilterType] = useState('all');
 
   // Filter listings owned by the current user
-  const myListings = listings.filter((l) => {
-    if (!currentUser) return false;
-    if (currentUser.phone && l.ownerId === currentUser.phone) return true;
-    if (currentUser.email && (l.ownerId === currentUser.email || l.contact?.email === currentUser.email)) return true;
-    return false;
-  });
+  const myListings = listings.filter((l) => isListingOwner(l, currentUser));
 
   const houses = myListings.filter((l) => l.type === 'house');
   const plots = myListings.filter((l) => l.type === 'plot');

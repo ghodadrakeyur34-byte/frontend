@@ -92,3 +92,111 @@ export async function apiFetch(url, options = {}) {
 
   return fetch(targetUrl, { ...options, headers });
 }
+
+/**
+ * Normalizes a phone string by stripping non-digits and keeping the last 10 digits.
+ */
+export function normalizePhone(phone) {
+  if (!phone) return '';
+  return String(phone).replace(/\D/g, '').slice(-10);
+}
+
+/**
+ * Records created listing IDs in localStorage to ensure user-created
+ * listings persist locally across sessions.
+ */
+export function saveCreatedListingId(listingId, user) {
+  if (!listingId) return;
+  try {
+    const userKey = `propbazaar_my_listings_${user?.email || user?.phone || 'guest'}`;
+    const userList = JSON.parse(localStorage.getItem(userKey) || '[]');
+    if (!userList.includes(listingId)) {
+      userList.unshift(listingId);
+      localStorage.setItem(userKey, JSON.stringify(userList));
+    }
+
+    const localList = JSON.parse(localStorage.getItem('propbazaar_my_listings_local') || '[]');
+    if (!localList.includes(listingId)) {
+      localList.unshift(listingId);
+      localStorage.setItem('propbazaar_my_listings_local', JSON.stringify(localList));
+    }
+  } catch (e) {}
+}
+
+/**
+ * Checks whether a listing is owned by the given user.
+ * Supports email (case-insensitive), normalized phone numbers,
+ * contact names, owner IDs, and local storage tracking.
+ */
+export function isListingOwner(listing, user) {
+  if (!listing || !user) return false;
+
+  // 1. Check local storage tracked listings for this user or browser
+  try {
+    const userKey = `propbazaar_my_listings_${user.email || user.phone || 'guest'}`;
+    const userTracked = JSON.parse(localStorage.getItem(userKey) || '[]');
+    if (Array.isArray(userTracked) && userTracked.includes(listing.id)) {
+      return true;
+    }
+    const localTracked = JSON.parse(localStorage.getItem('propbazaar_my_listings_local') || '[]');
+    if (Array.isArray(localTracked) && localTracked.includes(listing.id)) {
+      return true;
+    }
+  } catch (e) {}
+
+  const cleanStr = (s) => (s ? String(s).trim().toLowerCase() : '');
+  const cleanPhone = (p) => (p ? String(p).replace(/\D/g, '').slice(-10) : '');
+
+  const userEmail = cleanStr(user.email);
+  const userPhone = cleanPhone(user.phone);
+  const userName = cleanStr(user.name);
+  const userId = cleanStr(user.id || user._id || user.googleId);
+
+  const ownerId = cleanStr(listing.ownerId);
+  const ownerEmail = cleanStr(listing.ownerEmail || listing.contact?.email);
+  const ownerPhone = cleanPhone(listing.ownerPhone || (listing.ownerId && !listing.ownerId.includes('@') ? listing.ownerId : ''));
+  const contactPhone = cleanPhone(listing.contact?.phone);
+  const contactName = cleanStr(listing.contact?.name);
+  const contactEmail = cleanStr(listing.contact?.email);
+
+  // 2. Email Match (case-insensitive)
+  if (userEmail) {
+    if (ownerId === userEmail || ownerEmail === userEmail || contactEmail === userEmail) {
+      return true;
+    }
+    if (ownerId.includes(userEmail)) {
+      return true;
+    }
+  }
+
+  // 3. Direct User ID / Google ID Match
+  if (userId) {
+    if (ownerId === userId || cleanStr(listing.userId) === userId) {
+      return true;
+    }
+  }
+
+  // 4. Phone Number Match (normalized last 10 digits)
+  if (userPhone && userPhone.length >= 7) {
+    if (ownerPhone === userPhone || contactPhone === userPhone || cleanPhone(listing.ownerId) === userPhone) {
+      return true;
+    }
+  }
+
+  // 5. Contact Name match fallback (especially useful when user logged in via Google with empty phone)
+  if (userName && contactName && userName === contactName) {
+    // If ownerId is generic, empty, matches name, or matches user
+    if (!ownerId || ownerId === 'user' || ownerId === userName) {
+      return true;
+    }
+    if (userEmail && (ownerId === userEmail || !ownerId.includes('@'))) {
+      return true;
+    }
+    if (userPhone && (ownerPhone === userPhone || contactPhone === userPhone)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+

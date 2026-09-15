@@ -4,7 +4,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import HomeView from './components/HomeView';
 import LocationModal from './components/LocationModal';
-import { canChangePrice, apiFetch } from './utils';
+import { canChangePrice, apiFetch, saveCreatedListingId } from './utils';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 
@@ -220,14 +220,30 @@ export default function App() {
 
   // ===== LISTINGS CRUD =====
   const handleAddListing = async (newListing) => {
+    const userIdentifier = currentUser?.phone || currentUser?.email || '';
     const listingWithOwner = currentUser
-      ? { ...newListing, ownerId: currentUser.phone || currentUser.email || 'user' }
+      ? {
+          ...newListing,
+          ownerId: currentUser.email || currentUser.phone || newListing.ownerId || 'user',
+          ownerEmail: currentUser.email || newListing.ownerEmail || '',
+          ownerPhone: currentUser.phone || newListing.contact?.phone || newListing.ownerPhone || '',
+          contact: {
+            ...newListing.contact,
+            email: currentUser.email || newListing.contact?.email || '',
+          },
+        }
       : newListing;
 
     try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (userIdentifier) {
+        headers['Owner-Phone'] = userIdentifier;
+        headers['x-owner-phone'] = userIdentifier;
+      }
+
       const res = await apiFetch('/api/listings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(listingWithOwner),
       });
       if (!res.ok) {
@@ -235,6 +251,7 @@ export default function App() {
         throw new Error(errData.error || 'Failed to create listing');
       }
       const created = await res.json();
+      saveCreatedListingId(created?.id || newListing.id, currentUser);
       setListings((prevListings) => [created, ...prevListings]);
       return created;
     } catch (err) {
