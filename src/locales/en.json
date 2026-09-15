@@ -87,8 +87,8 @@
     "phonePlaceholder": "Enter Your Phone Number",
     "phoneError": "Phone number is required",
     "submit": "Post My Property",
-    "successTitle": "Listing Posted!",
-    "successMessage": "Your property is now live on Mari Milkat.",
+    "successTitle": "Listing Submitted for Approval!",
+    "successMessage": "Your property has been submitted and is pending admin approval. Once approved, it will go live on Mari Milkat.",
     "viewListing": "View My Listing",
     "loginRequiredTitle": "Login Required to Post",
     "loginRequiredMessage": "You need to be logged in to post your property. Please sign in or create an account to proceed.",
@@ -192,7 +192,11 @@
     "errorMessage": "{{error}}. Please check if the backend server is running.",
     "retry": "Retry",
     "sqft": "Sq. Ft.",
-    "sqyd": "Sq. Yards"
+    "sqyd": "Sq. Yards",
+    "pendingApproval": "Pending Approval",
+    "rejected": "Rejected",
+    "sold": "Sold",
+    "pendingNotice": "This property is pending admin approval and will be publicly visible once approved."
   },
   "footer": {
     "copyright": "© 2026 Mari Milkat. All rights reserved."

@@ -51,6 +51,75 @@ export default function PropertyCard({ listing }) {
           {type === 'house' ? <Home size={12} /> : <Building2 size={12} />}
           {type === 'house' ? t('common.house') : t('common.plot')}
         </span>
+        {listing.status === 'pending' && (
+          <span
+            className="status-badge"
+            style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              background: 'rgba(234, 179, 8, 0.95)',
+              color: '#0f172a',
+              fontSize: '0.72rem',
+              fontWeight: 700,
+              padding: '3px 10px',
+              borderRadius: '20px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              letterSpacing: '0.02em',
+            }}
+          >
+            ⏳ {t('common.pendingApproval', 'Pending Approval')}
+          </span>
+        )}
+        {listing.status === 'rejected' && (
+          <span
+            className="status-badge"
+            style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              background: 'rgba(239, 68, 68, 0.95)',
+              color: '#ffffff',
+              fontSize: '0.72rem',
+              fontWeight: 700,
+              padding: '3px 10px',
+              borderRadius: '20px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              letterSpacing: '0.02em',
+            }}
+          >
+            ✗ {t('common.rejected', 'Rejected')}
+          </span>
+        )}
+        {listing.status === 'sold' && (
+          <span
+            className="status-badge"
+            style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              background: 'rgba(59, 130, 246, 0.95)',
+              color: '#ffffff',
+              fontSize: '0.72rem',
+              fontWeight: 700,
+              padding: '3px 10px',
+              borderRadius: '20px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              letterSpacing: '0.02em',
+            }}
+          >
+            💰 {t('common.sold', 'Sold')}
+          </span>
+        )}
       </div>
       <div className="card-body">
         <div className="price gradient-text">{formatPrice(price)}</div>

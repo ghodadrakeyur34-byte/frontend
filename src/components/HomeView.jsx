@@ -58,7 +58,7 @@ export default function HomeView({ listings, onSearch, userLocation, onRequestLo
     window.location.hash = '#browse';
   };
 
-  const recentListings = listings.slice(0, 6);
+  const recentListings = listings.filter((l) => (l.status || 'active') === 'active').slice(0, 6);
 
   return (
     <main id="page-home" className="page active">

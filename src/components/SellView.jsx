@@ -231,6 +231,7 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
       ownerId: currentUser?.email || currentUser?.phone || 'user',
       ownerEmail: currentUser?.email || '',
       ownerPhone: currentUser?.phone || phone.trim() || '',
+      status: 'pending',
     };
 
     // If Google user has no phone in profile, link the phone entered in this form
@@ -257,9 +258,7 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
 
   const handleCloseModal = () => {
     setShowModal(false);
-    if (createdId) {
-      window.location.hash = `#detail/${createdId}`;
-    }
+    window.location.hash = '#my-listings';
   };
 
   const handleProceedToLogin = () => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Frown, Pencil, AlertTriangle, CheckCircle2, MapPin, Home, Building2, Phone, Eye, Lock, Share2 } from 'lucide-react';
-import { formatPrice, timeAgo, canChangePrice, getRemainingPriceChanges } from '../utils';
+import { ArrowLeft, Frown, Pencil, AlertTriangle, CheckCircle2, MapPin, Home, Building2, Phone, Eye, Lock, Share2, Clock } from 'lucide-react';
+import { formatPrice, timeAgo, canChangePrice, getRemainingPriceChanges, isListingOwner } from '../utils';
 import PropertyCard from './PropertyCard';
 import PropertyMap from './PropertyMap';
 import ReportButton from './ReportButton';
@@ -24,7 +24,11 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
 
   const listing = listings.find((l) => l.id === id);
 
-  if (!listing) {
+  const isOwner = isListingOwner(listing, currentUser);
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.isAdmin;
+  const isPending = listing?.status === 'pending';
+
+  if (!listing || (isPending && !isOwner && !isAdmin)) {
     return (
       <main id="page-detail" className="page active">
         <section className="detail-page">
@@ -33,9 +37,10 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
           </button>
           <div className="empty-state">
             <div className="icon" style={{ display: 'flex', justifyContent: 'center' }}>
-              <Frown size={48} color="var(--text3)" />
+              {isPending ? <Clock size={48} color="#eab308" /> : <Frown size={48} color="var(--text3)" />}
             </div>
-            <p>{t('detail.notFound')}</p>
+            <h2>{isPending ? t('common.pendingApproval') : t('detail.notFound')}</h2>
+            <p>{isPending ? t('common.pendingNotice') : t('detail.notFound')}</p>
           </div>
         </section>
       </main>
@@ -130,6 +135,29 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
         <button className="back-btn" onClick={() => window.history.back()} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
           <ArrowLeft size={16} /> {t('detail.back')}
         </button>
+
+        {isPending && (
+          <div style={{
+            background: 'rgba(234, 179, 8, 0.15)',
+            border: '1px solid rgba(234, 179, 8, 0.5)',
+            borderRadius: 'var(--r-md)',
+            padding: '1rem 1.25rem',
+            marginBottom: '1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}>
+            <Clock size={28} color="#eab308" />
+            <div>
+              <strong style={{ display: 'block', color: '#facc15', fontSize: '1rem', marginBottom: '2px' }}>
+                {t('common.pendingApproval', 'Pending Approval')}
+              </strong>
+              <span style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.85)' }}>
+                {t('common.pendingNotice', 'This property is pending admin approval and will be publicly visible once approved.')}
+              </span>
+            </div>
+          </div>
+        )}
 
         {imgs.length > 0 && (
           <div className="gallery">
