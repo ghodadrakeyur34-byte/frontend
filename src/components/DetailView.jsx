@@ -27,9 +27,9 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
   const isOwner = isListingOwner(listing, currentUser);
   const isAdmin = currentUser?.role === 'admin' || currentUser?.isAdmin;
   const canEditPrice = Boolean(isOwner || isAdmin);
-  const isPending = listing?.status === 'pending';
+  const isHidden = listing?.status === 'rejected' || listing?.status === 'deleted';
 
-  if (!listing || (isPending && !isOwner && !isAdmin)) {
+  if (!listing || (isHidden && !isOwner && !isAdmin)) {
     return (
       <main id="page-detail" className="page active">
         <section className="detail-page">
@@ -38,10 +38,10 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
           </button>
           <div className="empty-state">
             <div className="icon" style={{ display: 'flex', justifyContent: 'center' }}>
-              {isPending ? <Clock size={48} color="#eab308" /> : <Frown size={48} color="var(--text3)" />}
+              <Frown size={48} color="var(--text3)" />
             </div>
-            <h2>{isPending ? t('common.pendingApproval') : t('detail.notFound')}</h2>
-            <p>{isPending ? t('common.pendingNotice') : t('detail.notFound')}</p>
+            <h2>{t('detail.notFound')}</h2>
+            <p>{t('detail.notFound')}</p>
           </div>
         </section>
       </main>

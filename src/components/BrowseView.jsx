@@ -39,7 +39,7 @@ export default function BrowseView({ listings, initialFilters, clearInitialFilte
   const areaQuery = filterArea.toLowerCase().trim();
 
   let filteredListings = listings.filter((l) => {
-    const isActive = (l.status || 'active') === 'active';
+    const isVisible = l.status !== 'rejected' && l.status !== 'deleted';
     const matchesType = !filterType || l.type === filterType;
     const matchesMinPrice = l.price >= minPrice;
     const matchesMaxPrice = l.price <= maxPrice;
@@ -47,7 +47,7 @@ export default function BrowseView({ listings, initialFilters, clearInitialFilte
       l.area.toLowerCase().includes(areaQuery) || 
       l.city.toLowerCase().includes(areaQuery);
 
-    return isActive && matchesType && matchesMinPrice && matchesMaxPrice && matchesArea;
+    return isVisible && matchesType && matchesMinPrice && matchesMaxPrice && matchesArea;
   });
 
   // Sorting logic

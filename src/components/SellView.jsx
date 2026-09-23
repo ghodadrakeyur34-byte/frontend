@@ -231,7 +231,7 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
       ownerId: currentUser?.email || currentUser?.phone || 'user',
       ownerEmail: currentUser?.email || '',
       ownerPhone: currentUser?.phone || phone.trim() || '',
-      status: 'pending',
+      status: 'active',
     };
 
     // If Google user has no phone in profile, link the phone entered in this form

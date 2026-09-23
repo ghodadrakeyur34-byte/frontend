@@ -135,6 +135,9 @@ export default function App() {
         if (currentUser?.phone || currentUser?.email) {
           headers['Owner-Phone'] = currentUser.phone || currentUser.email;
         }
+        if (currentUser?.token) {
+          headers['Authorization'] = `Bearer ${currentUser.token}`;
+        }
         const res = await apiFetch('/api/listings', { headers });
         if (!res.ok) throw new Error('Failed to fetch listings from server.');
         const data = await res.json();
