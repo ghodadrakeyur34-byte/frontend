@@ -26,6 +26,7 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
 
   const isOwner = isListingOwner(listing, currentUser);
   const isAdmin = currentUser?.role === 'admin' || currentUser?.isAdmin;
+  const canEditPrice = Boolean(isOwner || isAdmin);
   const isPending = listing?.status === 'pending';
 
   if (!listing || (isPending && !isOwner && !isAdmin)) {
@@ -71,6 +72,7 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
   };
 
   const handleOpenPriceEdit = () => {
+    if (!canEditPrice) return;
     setEditPriceValue(String(price));
     setPriceMessage(null);
     setIsEditingPrice(true);
@@ -81,7 +83,8 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
     setPriceMessage(null);
   };
 
-  const handleSavePrice = () => {
+  const handleSavePrice = async () => {
+    if (!canEditPrice) return;
     const newPrice = parseFloat(editPriceValue);
 
     // Client-side validation
@@ -96,15 +99,15 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
     }
 
     // Delegate to parent — it enforces the 4-per-month limit
-    const result = onUpdatePrice(id, newPrice);
+    const result = await onUpdatePrice(id, newPrice);
 
-    if (result.success) {
+    if (result && result.success) {
       setPriceMessage({ type: 'success', text: result.message });
       setIsEditingPrice(false);
       // Auto-clear the success banner after 3 seconds
       setTimeout(() => setPriceMessage(null), 3000);
     } else {
-      setPriceMessage({ type: 'error', text: result.message });
+      setPriceMessage({ type: 'error', text: result?.message || 'Failed to update price.' });
     }
   };
 
@@ -190,63 +193,72 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
 
         <div className="detail-layout">
           <div className="detail-info">
-            {/* ===== PRICE SECTION WITH EDIT CAPABILITY ===== */}
+            {/* ===== PRICE SECTION WITH EDIT CAPABILITY (UPLOADER ONLY) ===== */}
             <div className="price-section">
-              {isEditingPrice ? (
-                <div className="price-edit-form">
-                  <label className="price-edit-label">{t('detail.newPrice')}</label>
-                  <div className="price-edit-row">
-                    <input
-                      type="number"
-                      className="price-edit-input"
-                      value={editPriceValue}
-                      onChange={(e) => setEditPriceValue(e.target.value)}
-                      min="1"
-                      autoFocus
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleSavePrice();
-                        if (e.key === 'Escape') handleCancelPriceEdit();
-                      }}
-                    />
-                    <button className="price-edit-save" onClick={handleSavePrice}>
-                      {t('detail.save')}
-                    </button>
-                    <button className="price-edit-cancel" onClick={handleCancelPriceEdit}>
-                      {t('detail.cancel')}
-                    </button>
+              {canEditPrice ? (
+                <>
+                  {isEditingPrice ? (
+                    <div className="price-edit-form">
+                      <label className="price-edit-label">{t('detail.newPrice')}</label>
+                      <div className="price-edit-row">
+                        <input
+                          type="number"
+                          className="price-edit-input"
+                          value={editPriceValue}
+                          onChange={(e) => setEditPriceValue(e.target.value)}
+                          min="1"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSavePrice();
+                            if (e.key === 'Escape') handleCancelPriceEdit();
+                          }}
+                        />
+                        <button className="price-edit-save" onClick={handleSavePrice}>
+                          {t('detail.save')}
+                        </button>
+                        <button className="price-edit-cancel" onClick={handleCancelPriceEdit}>
+                          {t('detail.cancel')}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="price-display-row">
+                      <div className="detail-price">{formatPrice(price)}</div>
+                      <button
+                        className={`btn-edit-price ${!allowed ? 'disabled' : ''}`}
+                        onClick={allowed ? handleOpenPriceEdit : undefined}
+                        disabled={!allowed}
+                        title={
+                          allowed
+                            ? t('detail.editPriceTooltip', { remaining, s: remaining !== 1 ? 's' : '' })
+                            : t('detail.limitReached')
+                        }
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        <Pencil size={15} /> {t('detail.editPrice')}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Remaining changes indicator - only visible to uploader */}
+                  <div className={`price-limit-info ${remaining === 0 ? 'exhausted' : remaining === 1 ? 'warning' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <AlertTriangle size={14} />
+                    {remaining === 0
+                      ? t('detail.noChangesLeft')
+                      : t('detail.changesRemaining', { remaining, s: remaining !== 1 ? 's' : '' })}
                   </div>
-                </div>
+
+                  {/* Feedback message */}
+                  {priceMessage && (
+                    <div className={`price-message ${priceMessage.type}`} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {priceMessage.type === 'success' ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />} {priceMessage.text}
+                    </div>
+                  )}
+                </>
               ) : (
+                /* Regular viewer/buyer only sees the price */
                 <div className="price-display-row">
                   <div className="detail-price">{formatPrice(price)}</div>
-                  <button
-                    className={`btn-edit-price ${!allowed ? 'disabled' : ''}`}
-                    onClick={allowed ? handleOpenPriceEdit : undefined}
-                    disabled={!allowed}
-                    title={
-                      allowed
-                        ? t('detail.editPriceTooltip', { remaining, s: remaining !== 1 ? 's' : '' })
-                        : t('detail.limitReached')
-                    }
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                  >
-                    <Pencil size={15} /> {t('detail.editPrice')}
-                  </button>
-                </div>
-              )}
-
-              {/* Remaining changes indicator */}
-              <div className={`price-limit-info ${remaining === 0 ? 'exhausted' : remaining === 1 ? 'warning' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                <AlertTriangle size={14} />
-                {remaining === 0
-                  ? t('detail.noChangesLeft')
-                  : t('detail.changesRemaining', { remaining, s: remaining !== 1 ? 's' : '' })}
-              </div>
-
-              {/* Feedback message */}
-              {priceMessage && (
-                <div className={`price-message ${priceMessage.type}`} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  {priceMessage.type === 'success' ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />} {priceMessage.text}
                 </div>
               )}
             </div>
