@@ -158,12 +158,16 @@ export default function PropertyMap({
       userMarkerRef.current = userMarker;
     }
 
-    // Fit bounds if we have markers
-    if (bounds.length > 0 && !selectedListingId) {
+    // Center on selected listing or fit bounds for multiple markers
+    if (bounds.length > 0) {
       try {
-        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+        if (selectedListingId) {
+          map.setView(bounds[0], 15, { animate: true });
+        } else {
+          map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+        }
       } catch (err) {
-        console.error('Fit bounds error:', err);
+        console.error('Fit/set bounds error:', err);
       }
     }
   }, [listings, userLocation, selectedListingId]);

@@ -22,12 +22,13 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
     setShowNumber(false);
   }, [id]);
 
-  const listing = listings.find((l) => l.id === id);
+  const listing = listings.find((l) => String(l.id) === String(id));
 
   const isOwner = isListingOwner(listing, currentUser);
   const isAdmin = currentUser?.role === 'admin' || currentUser?.isAdmin;
   const canEditPrice = Boolean(isOwner || isAdmin);
   const isHidden = listing?.status === 'rejected' || listing?.status === 'deleted';
+  const isPending = listing?.status === 'pending';
 
   if (!listing || (isHidden && !isOwner && !isAdmin)) {
     return (
@@ -48,9 +49,10 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
     );
   }
 
-  const { type, title, desc, price, size, unit, area, city, images, contact, date, priceChangeLog } = listing;
+  const { type, title, desc, price, size, unit, area, city, images, date, priceChangeLog } = listing;
+  const contact = listing.contact || {};
 
-  const imgs = images && images.length > 0 ? images : [];
+  const imgs = images && Array.isArray(images) && images.length > 0 ? images : [];
   const remaining = getRemainingPriceChanges(priceChangeLog);
   const allowed = canChangePrice(priceChangeLog);
   const isLoggedIn = !!currentUser;
@@ -162,7 +164,7 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
           </div>
         )}
 
-        {imgs.length > 0 && (
+        {imgs.length > 0 ? (
           <div className="gallery">
             <div className="gallery-main">
               <img src={imgs[activeIdx]} alt={`${title} - view ${activeIdx + 1}`} />
@@ -188,6 +190,13 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
                 </div>
               </>
             )}
+          </div>
+        ) : (
+          <div className="gallery" style={{ marginBottom: '2rem' }}>
+            <div className="gallery-main" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)', minHeight: '260px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
+              {type === 'house' ? <Home size={56} style={{ color: 'var(--text3)', marginBottom: '12px', opacity: 0.6 }} /> : <Building2 size={56} style={{ color: 'var(--text3)', marginBottom: '12px', opacity: 0.6 }} />}
+              <span style={{ color: 'var(--text3)', fontSize: '0.95rem' }}>No preview images available</span>
+            </div>
           </div>
         )}
 
@@ -313,9 +322,9 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
           <div className="contact-card">
             <h3>{t('detail.contactSeller')}</h3>
             <div className="seller-info">
-              <div className="seller-avatar">{contact.name ? contact.name.charAt(0) : '?'}</div>
+              <div className="seller-avatar">{contact?.name ? contact.name.charAt(0) : '?'}</div>
               <div>
-                <div className="seller-name">{contact.name}</div>
+                <div className="seller-name">{contact?.name || 'Seller'}</div>
                 <div className="seller-date">{t('detail.posted', { time: timeAgo(date) })}</div>
               </div>
             </div>
@@ -323,15 +332,15 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
             {/* ===== GATED CONTACT NUMBER ===== */}
             {isLoggedIn && showNumber ? (
               /* Fully revealed — logged in user clicked "Show Number" */
-              <a href={`tel:${contact.phone}`} className="btn-call" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                <Phone size={18} /> {t('detail.call', { phone: contact.phone })}
+              <a href={`tel:${contact?.phone || ''}`} className="btn-call" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <Phone size={18} /> {t('detail.call', { phone: contact?.phone || 'N/A' })}
               </a>
             ) : isLoggedIn && !showNumber ? (
               /* Logged in but hasn't clicked reveal yet */
               <button className="btn-reveal-number" onClick={handleRevealNumber} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                 <Eye size={18} />
                 <span>{t('detail.showContact')}</span>
-                <span className="phone-masked">{getMaskedPhone(contact.phone)}</span>
+                <span className="phone-masked">{getMaskedPhone(contact?.phone)}</span>
               </button>
             ) : (
               /* Not logged in — locked state */
