@@ -66,7 +66,7 @@ const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https:
  * Wrapper around fetch that automatically includes credentials and attaches
  * the X-XSRF-TOKEN header on state-changing requests (POST, PUT, DELETE).
  */
-export async function apiFetch(url, options = {}) {
+export async function apiFetch(url, options = {}, _isRetry = false) {
   const method = (options.method || 'GET').toUpperCase();
   const headers = { ...(options.headers || {}) };
 
@@ -90,7 +90,25 @@ export async function apiFetch(url, options = {}) {
     }
   }
 
-  return fetch(targetUrl, { ...options, headers });
+  const res = await fetch(targetUrl, { ...options, headers });
+
+  // If 401 and not already retrying, attempt a silent token refresh then retry once
+  if (res.status === 401 && !_isRetry) {
+    try {
+      const refreshRes = await fetch(`${API_BASE}/api/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (refreshRes.ok) {
+        // Refresh succeeded — retry the original request
+        return apiFetch(url, options, true);
+      }
+    } catch (e) {
+      // Refresh failed — return original 401 response
+    }
+  }
+
+  return res;
 }
 
 /**
