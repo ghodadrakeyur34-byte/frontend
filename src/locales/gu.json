@@ -182,7 +182,10 @@
     "continueWithGoogle": "Google સાથે આગળ વધો",
     "verifyingWithGoogle": "Google સાથે ચકાસણી થઈ રહી છે...",
     "googleVerified": "Google દ્વારા પ્રમાણિત",
-    "googleFailed": "Google સાઇન ઇન નિષ્ફળ થયું. કૃપા કરીને ફરી પ્રયાસ કરો."
+    "googleFailed": "Google સાઇન ઇન નિષ્ફળ થયું. કૃપા કરીને ફરી પ્રયાસ કરો.",
+    "rememberMe": "આ ઉપકરણ પર મને યાદ રાખો",
+    "rememberDuration": "ઓછામાં ઓછા ૭ થી ૩૦ દિવસ સુધી સાઇન ઇન રાખશે",
+    "rememberMeHint": "લૉગિન રહો અને તમારી લૉગિન માહિતી યાદ રાખો"
   },
   "common": {
     "house": "મકાન",

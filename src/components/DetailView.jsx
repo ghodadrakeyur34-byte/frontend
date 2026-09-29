@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Frown, Pencil, AlertTriangle, CheckCircle2, MapPin, Home, Building2, Phone, Eye, Lock, Share2, Clock } from 'lucide-react';
+import { ArrowLeft, Frown, Pencil, AlertTriangle, CheckCircle2, MapPin, Home, Building2, Phone, Eye, Lock, Share2, Clock, Trash2 } from 'lucide-react';
 import { formatPrice, timeAgo, canChangePrice, getRemainingPriceChanges, isListingOwner } from '../utils';
 import PropertyCard from './PropertyCard';
 import PropertyMap from './PropertyMap';
 import ReportButton from './ReportButton';
 
-export default function DetailView({ id, listings, onUpdatePrice, currentUser, onRequireLogin, userLocation }) {
+export default function DetailView({ id, listings, onUpdatePrice, onDeleteListing, currentUser, onRequireLogin, userLocation }) {
   const { t } = useTranslation();
   const [activeIdx, setActiveIdx] = useState(0);
   const [isEditingPrice, setIsEditingPrice] = useState(false);
   const [editPriceValue, setEditPriceValue] = useState('');
   const [priceMessage, setPriceMessage] = useState(null); // { type: 'success' | 'error', text }
   const [showNumber, setShowNumber] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Reset active image index and close price editor when viewing a new property
   useEffect(() => {
@@ -361,6 +363,34 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
               <Share2 size={16} /> {t('detail.shareListing')}
             </button>
             <ReportButton type="listing" targetId={id} reporterEmail={currentUser?.email} />
+
+            {/* Owner-only Delete Option */}
+            {isOwner && onDeleteListing && (
+              <button
+                className="btn-delete-detail"
+                onClick={() => setShowDeleteModal(true)}
+                title="Delete this property"
+                style={{
+                  width: '100%',
+                  marginTop: '0.75rem',
+                  padding: '0.75rem 1rem',
+                  borderRadius: 'var(--r-md, 8px)',
+                  background: 'rgba(239, 68, 68, 0.12)',
+                  color: '#f87171',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <Trash2 size={16} /> {t('myListings.delete', 'Delete Listing')}
+              </button>
+            )}
           </div>
         </div>
 
@@ -377,6 +407,44 @@ export default function DetailView({ id, listings, onUpdatePrice, currentUser, o
           </div>
         )}
       </section>
+
+      {/* Owner Delete Confirmation Modal */}
+      {isOwner && onDeleteListing && (
+        <div className={`modal-overlay ${showDeleteModal ? 'show' : ''}`}>
+          <div className="modal">
+            <div className="checkmark" style={{ background: 'rgba(248,113,113,0.15)', borderColor: '#f87171', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <Trash2 size={32} color="#f87171" />
+            </div>
+            <h2>{t('myListings.deleteTitle', 'Delete Property')}</h2>
+            <p>
+              {t('myListings.deleteConfirmPrefix', 'Are you sure you want to remove')} <strong>"{title}"</strong>?
+              {' '}{t('myListings.deleteConfirmSuffix', 'This action cannot be undone.')}
+            </p>
+            <div className="modal-actions">
+              <button
+                className="btn-submit btn-danger"
+                disabled={isDeleting}
+                onClick={async () => {
+                  try {
+                    setIsDeleting(true);
+                    await onDeleteListing(id);
+                    setShowDeleteModal(false);
+                    window.location.hash = '#my-listings';
+                  } catch (err) {
+                    setIsDeleting(false);
+                  }
+                }}
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+              >
+                <Trash2 size={16} /> {isDeleting ? 'Deleting...' : t('myListings.yesDelete', 'Yes, Delete')}
+              </button>
+              <button className="btn-submit btn-cancel-modal" onClick={() => setShowDeleteModal(false)}>
+                {t('detail.cancel', 'Cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

@@ -54,7 +54,14 @@ export default function GoogleSignInButton({ onAuthSuccess, onError, text = 'sig
       }
 
       if (onAuthSuccess && data.user) {
-        onAuthSuccess(data.user);
+        try {
+          if (data.user.email) {
+            localStorage.setItem('mari_milkat_remembered_email', data.user.email);
+            localStorage.setItem('mari_milkat_remember_me', 'true');
+            localStorage.setItem('mari_milkat_remember_until', String(Date.now() + 30 * 24 * 60 * 60 * 1000));
+          }
+        } catch (e) {}
+        onAuthSuccess(data.user, data.accessToken || data.token, data.refreshToken);
       }
     } catch (err) {
       console.error('Google Sign-In backend verification error:', err);
@@ -82,7 +89,7 @@ export default function GoogleSignInButton({ onAuthSuccess, onError, text = 'sig
                 window._gsiActiveCallback(res);
               }
             },
-            auto_select: false,
+            auto_select: true,
             cancel_on_tap_outside: true,
           });
           window._gsiInitialized = true;

@@ -4,10 +4,32 @@ import { Home, Mail, CheckCircle2, Lock, KeyRound, User, Phone, Eye, EyeOff, Rot
 import GoogleSignInButton from './GoogleSignInButton';
 import { apiFetch } from '../utils';
 
+const REMEMBERED_EMAIL_KEY = 'mari_milkat_remembered_email';
+const REMEMBER_ME_FLAG = 'mari_milkat_remember_me';
+
 export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
   const { t } = useTranslation();
   const [mode, setMode] = useState('login'); // 'login' | 'signup' | 'verify'
-  const [email, setEmail] = useState('');
+
+  // Remember Me state — defaults to true (at least 7 to 30 days)
+  const [rememberMe, setRememberMe] = useState(() => {
+    try {
+      const saved = localStorage.getItem(REMEMBER_ME_FLAG);
+      return saved === null ? true : saved === 'true';
+    } catch {
+      return true;
+    }
+  });
+
+  // Pre-fill email from remembered login information if available
+  const [email, setEmail] = useState(() => {
+    try {
+      return localStorage.getItem(REMEMBERED_EMAIL_KEY) || '';
+    } catch {
+      return '';
+    }
+  });
+
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -53,6 +75,22 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
     // Admin direct login check
     const cleanEmail = email.trim().toLowerCase();
     const lowerPass = (password || '').toLowerCase();
+
+    // Persist or clear remembered email based on rememberMe checkbox
+    if (rememberMe && cleanEmail) {
+      try {
+        localStorage.setItem(REMEMBERED_EMAIL_KEY, cleanEmail);
+        localStorage.setItem(REMEMBER_ME_FLAG, 'true');
+        localStorage.setItem('mari_milkat_remember_until', String(Date.now() + 30 * 24 * 60 * 60 * 1000));
+      } catch (e) {}
+    } else if (!rememberMe) {
+      try {
+        localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+        localStorage.setItem(REMEMBER_ME_FLAG, 'false');
+        localStorage.removeItem('mari_milkat_remember_until');
+      } catch (e) {}
+    }
+
     const isAdminEmail = cleanEmail === 'marimilkatadmin@gmail.com';
     const isAdminPass = password === 'Admin@MariMilkat' || password === '@dmin@Milkat' || lowerPass === '@dmin@milkat' || lowerPass === 'admin@marimilkat';
 
@@ -66,9 +104,15 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
         });
         const data = await res.json();
         if (res.ok && data.success) {
-          localStorage.setItem('marimilkat_admin', JSON.stringify(data));
+          const adminToken = data.accessToken || data.token;
+          const adminPayload = {
+            ...(data.admin || { email: cleanEmail, name: 'Admin', role: 'admin', isAdmin: true }),
+            token: adminToken,
+            refreshToken: data.refreshToken,
+          };
+          localStorage.setItem('marimilkat_admin', JSON.stringify({ ...data, token: adminToken }));
           if (onAuthSuccess) {
-            onAuthSuccess(data.admin || { email: cleanEmail, name: 'Admin', role: 'admin', isAdmin: true });
+            onAuthSuccess(adminPayload, adminToken, data.refreshToken);
           }
           window.location.hash = '#admin';
           return;
@@ -165,7 +209,7 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
         setInfoMessage('Email verified! Signing you in...');
         setTimeout(() => {
           if (onAuthSuccess) {
-            onAuthSuccess(data.user);
+            onAuthSuccess(data.user, data.accessToken || data.token, data.refreshToken);
           }
         }, 500);
       }
@@ -542,6 +586,25 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
                         {errors.confirmPassword && (
                           <div className="error-msg show">{errors.confirmPassword}</div>
                         )}
+                      </div>
+                    )}
+
+                    {/* Remember Me Checkbox (active for at least 7 to 30 days) */}
+                    {mode === 'login' && (
+                      <div className="remember-me-row">
+                        <label className="remember-me-label" htmlFor="rememberMeCheckbox">
+                          <input
+                            type="checkbox"
+                            id="rememberMeCheckbox"
+                            className="remember-me-checkbox"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                          />
+                          <span>{t('login.rememberMe', 'Remember me on this device')}</span>
+                        </label>
+                        <span className="remember-me-duration" title={t('login.rememberMeHint', 'Stay signed in and remember your login information')}>
+                          🛡️ {t('login.rememberDuration', 'Keeps you signed in for at least 7 to 30 days')}
+                        </span>
                       </div>
                     )}
 

@@ -4,7 +4,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import HomeView from './components/HomeView';
 import LocationModal from './components/LocationModal';
-import { canChangePrice, apiFetch, saveCreatedListingId } from './utils';
+import { canChangePrice, apiFetch, saveCreatedListingId, removeCreatedListingId } from './utils';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 
@@ -28,7 +28,14 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const stored = localStorage.getItem(USER_KEY);
-      return stored ? JSON.parse(stored) : null;
+      if (!stored) return null;
+      const parsed = JSON.parse(stored);
+      // Verify rememberUntil (at least 7 days, up to 30 days default)
+      if (parsed?.rememberUntil && Date.now() > parsed.rememberUntil) {
+        localStorage.removeItem(USER_KEY);
+        return null;
+      }
+      return parsed;
     } catch {
       return null;
     }
@@ -44,6 +51,14 @@ export default function App() {
 
   // Track where user was before they were redirected to login
   const [loginRedirect, setLoginRedirect] = useState(null);
+
+  // Clean up legacy unauthenticated listing keys from earlier versions
+  useEffect(() => {
+    try {
+      localStorage.removeItem('propbazaar_my_listings_local');
+      localStorage.removeItem('propbazaar_my_listings_guest');
+    } catch (e) {}
+  }, []);
 
   // Initialize Lenis smooth scroll animation
   useEffect(() => {
@@ -162,6 +177,61 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  // Redirect away from #login if user is already logged in
+  useEffect(() => {
+    if (currentHash === '#login' && currentUser) {
+      const target = loginRedirect || '#home';
+      setLoginRedirect(null);
+      window.location.hash = target;
+    }
+  }, [currentHash, currentUser]);
+
+  // On mount: silently verify and refresh session from backend if token exists
+  useEffect(() => {
+    async function verifySession() {
+      const stored = localStorage.getItem(USER_KEY);
+      if (!stored) return;
+      try {
+        const user = JSON.parse(stored);
+        if (!user?.token) return;
+
+        // Check if session has exceeded 30 days
+        if (user.rememberUntil && Date.now() > user.rememberUntil) {
+          console.warn('Login session period expired (> 30 days). Logging out.');
+          setCurrentUser(null);
+          localStorage.removeItem(USER_KEY);
+          return;
+        }
+
+        const res = await apiFetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.user) {
+            const updated = {
+              ...user,
+              ...data.user,
+              token: data.user.token || user.token,
+              refreshToken: user.refreshToken,
+              // Rolling renewal: keep login session remembered for at least another 30 days
+              rememberUntil: Math.max(user.rememberUntil || 0, Date.now() + 30 * 24 * 60 * 60 * 1000),
+            };
+            setCurrentUser(updated);
+            localStorage.setItem(USER_KEY, JSON.stringify(updated));
+          }
+        } else if (res.status === 401) {
+          // If refresh also failed and token is truly expired/invalid
+          console.warn('Session expired or invalidated by server.');
+          setCurrentUser(null);
+          localStorage.removeItem(USER_KEY);
+        }
+      } catch (err) {
+        // Network offline or backend cold boot — retain local currentUser so user stays logged in!
+        console.warn('Silent session check skipped (offline or booting):', err?.message || err);
+      }
+    }
+    verifySession();
+  }, []);
+
   // ===== AUTH =====
   const navigateToLogin = (redirectBack) => {
     if (redirectBack) {
@@ -170,11 +240,30 @@ export default function App() {
     window.location.hash = '#login';
   };
 
-  const handleAuthSuccess = (userData) => {
+  const handleAuthSuccess = (userData, optionalToken, optionalRefreshToken) => {
     if (!userData) return;
     const { password, passwordHash, ...safeUser } = userData;
-    setCurrentUser(safeUser);
-    localStorage.setItem(USER_KEY, JSON.stringify(safeUser));
+    const token = optionalToken || safeUser.token || userData.token;
+    const refreshToken = optionalRefreshToken || safeUser.refreshToken || userData.refreshToken;
+    const rememberDurationMs = 30 * 24 * 60 * 60 * 1000; // 30 days (guaranteed >= 7 days)
+    const fullUser = {
+      ...safeUser,
+      ...(token ? { token } : {}),
+      ...(refreshToken ? { refreshToken } : {}),
+      loginAt: Date.now(),
+      rememberUntil: Date.now() + rememberDurationMs,
+    };
+    setCurrentUser(fullUser);
+    localStorage.setItem(USER_KEY, JSON.stringify(fullUser));
+
+    // Persist remembered email for easy login autofill
+    if (fullUser.email) {
+      try {
+        localStorage.setItem('mari_milkat_remembered_email', fullUser.email);
+        localStorage.setItem('mari_milkat_remember_me', 'true');
+        localStorage.setItem('mari_milkat_remember_until', String(fullUser.rememberUntil));
+      } catch (e) {}
+    }
 
     const redirectTo = loginRedirect || '#home';
     setLoginRedirect(null);
@@ -207,7 +296,7 @@ export default function App() {
     }
 
     if (data.success && data.user) {
-      handleAuthSuccess(data.user);
+      handleAuthSuccess(data.user, data.accessToken || data.token, data.refreshToken);
       return data;
     }
   };
@@ -227,9 +316,10 @@ export default function App() {
     const listingWithOwner = currentUser
       ? {
           ...newListing,
-          ownerId: currentUser.email || currentUser.phone || newListing.ownerId || 'user',
+          ownerId: currentUser.email || currentUser.phone || currentUser.id || newListing.ownerId || 'user',
           ownerEmail: currentUser.email || newListing.ownerEmail || '',
           ownerPhone: currentUser.phone || newListing.contact?.phone || newListing.ownerPhone || '',
+          ownerUserId: currentUser.id || currentUser.googleId || '',
           contact: {
             ...newListing.contact,
             email: currentUser.email || newListing.contact?.email || '',
@@ -276,6 +366,7 @@ export default function App() {
         const errData = await res.json();
         throw new Error(errData.error || 'Failed to delete listing');
       }
+      removeCreatedListingId(listingId, currentUser);
       setListings((prev) => prev.filter((l) => l.id !== listingId));
     } catch (err) {
       console.error('Delete listing error:', err);
@@ -343,10 +434,7 @@ export default function App() {
     const hash = currentHash || '#home';
 
     if (hash === '#login') {
-      // If already logged in, redirect to home
       if (currentUser) {
-        window.location.hash = loginRedirect || '#home';
-        setLoginRedirect(null);
         return null;
       }
       return <LoginPage onLogin={handleLogin} onAuthSuccess={handleAuthSuccess} redirectAfter={loginRedirect} />;
@@ -391,8 +479,12 @@ export default function App() {
     }
     if (hash === '#my-listings') {
       if (!currentUser) {
-        navigateToLogin('#my-listings');
-        return null;
+        return (
+          <LoginPage
+            onLogin={handleLogin}
+            onAuthSuccess={handleAuthSuccess}
+          />
+        );
       }
       return (
         <MyListingsView
@@ -409,6 +501,7 @@ export default function App() {
           id={id}
           listings={listings}
           onUpdatePrice={handleUpdatePrice}
+          onDeleteListing={handleDeleteListing}
           currentUser={currentUser}
           onRequireLogin={() => navigateToLogin(`#detail/${id}`)}
           userLocation={userLocation}

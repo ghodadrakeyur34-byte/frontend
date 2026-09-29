@@ -1544,8 +1544,13 @@ export default function AdminPanel() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogin = (adminData) => {
-    localStorage.setItem(ADMIN_KEY, JSON.stringify(adminData));
-    setAdmin(adminData);
+    const payload = {
+      ...(adminData.admin || { email: 'marimilkatadmin@gmail.com', name: 'Admin', role: 'admin', isAdmin: true }),
+      token: adminData.token || adminData.accessToken,
+      refreshToken: adminData.refreshToken,
+    };
+    localStorage.setItem(ADMIN_KEY, JSON.stringify(payload));
+    setAdmin(payload);
   };
 
   const handleLogout = () => {

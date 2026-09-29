@@ -5044,3 +5044,44 @@ footer a:hover {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* Remember Me Checkbox Row */
+.remember-me-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0.85rem 0 1.25rem 0;
+  padding: 0 2px;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.remember-me-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.88rem;
+  color: var(--text2);
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.remember-me-label:hover {
+  color: var(--text);
+}
+
+.remember-me-checkbox {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.remember-me-duration {
+  font-size: 0.78rem;
+  color: var(--text3);
+  letter-spacing: 0.01em;
+}

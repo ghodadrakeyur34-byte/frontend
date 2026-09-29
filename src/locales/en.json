@@ -182,7 +182,10 @@
     "continueWithGoogle": "Continue with Google",
     "verifyingWithGoogle": "Verifying with Google...",
     "googleVerified": "Verified with Google",
-    "googleFailed": "Google sign-in failed. Please try again."
+    "googleFailed": "Google sign-in failed. Please try again.",
+    "rememberMe": "Remember me on this device",
+    "rememberDuration": "Keeps you signed in for at least 7 to 30 days",
+    "rememberMeHint": "Stay signed in and remember your login information"
   },
   "common": {
     "house": "House",

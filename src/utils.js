@@ -74,6 +74,35 @@ export async function apiFetch(url, options = {}, _isRetry = false) {
 
   options.credentials = 'include';
 
+  // Automatically attach Bearer token from stored user session
+  if (!headers['Authorization']) {
+    try {
+      const stored = localStorage.getItem('propbazaar_user');
+      if (stored) {
+        const u = JSON.parse(stored);
+        if (u?.token) {
+          headers['Authorization'] = `Bearer ${u.token}`;
+        }
+      }
+    } catch (e) {}
+  }
+
+  // Automatically attach Admin token if admin session exists
+  if (!headers['x-admin-token']) {
+    try {
+      const adminStored = localStorage.getItem('marimilkat_admin');
+      if (adminStored) {
+        const a = JSON.parse(adminStored);
+        if (a?.token) {
+          headers['x-admin-token'] = a.token;
+          if (!headers['Authorization']) {
+            headers['Authorization'] = `Bearer ${a.token}`;
+          }
+        }
+      }
+    } catch (e) {}
+  }
+
   if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
     let token = getCookie('XSRF-TOKEN');
     if (!token) {
@@ -92,19 +121,68 @@ export async function apiFetch(url, options = {}, _isRetry = false) {
 
   const res = await fetch(targetUrl, { ...options, headers });
 
-  // If 401 and not already retrying, attempt a silent token refresh then retry once
-  if (res.status === 401 && !_isRetry) {
+  // If 401 and not already retrying, attempt silent token refresh and retry
+  if (res.status === 401 && !_isRetry && !url.includes('/auth/login') && !url.includes('/auth/signup') && !url.includes('/admin/login')) {
     try {
+      let refreshToken = null;
+      try {
+        const stored = localStorage.getItem('propbazaar_user');
+        if (stored) {
+          const u = JSON.parse(stored);
+          refreshToken = u?.refreshToken;
+        }
+        if (!refreshToken) {
+          const adminStored = localStorage.getItem('marimilkat_admin');
+          if (adminStored) {
+            const a = JSON.parse(adminStored);
+            refreshToken = a?.refreshToken;
+          }
+        }
+      } catch (e) {}
+
       const refreshRes = await fetch(`${API_BASE}/api/auth/refresh`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(refreshToken ? { 'x-refresh-token': refreshToken } : {}),
+        },
+        body: JSON.stringify({ refreshToken }),
         credentials: 'include',
       });
+
       if (refreshRes.ok) {
-        // Refresh succeeded — retry the original request
-        return apiFetch(url, options, true);
+        const data = await refreshRes.json();
+        const newToken = data.accessToken;
+        if (newToken) {
+          // Persist updated token to user storage
+          try {
+            const stored = localStorage.getItem('propbazaar_user');
+            if (stored) {
+              const u = JSON.parse(stored);
+              u.token = newToken;
+              if (data.refreshToken) u.refreshToken = data.refreshToken;
+              localStorage.setItem('propbazaar_user', JSON.stringify(u));
+            }
+          } catch (e) {}
+
+          // Persist updated token to admin storage if applicable
+          try {
+            const adminStored = localStorage.getItem('marimilkat_admin');
+            if (adminStored) {
+              const a = JSON.parse(adminStored);
+              a.token = newToken;
+              if (data.refreshToken) a.refreshToken = data.refreshToken;
+              localStorage.setItem('marimilkat_admin', JSON.stringify(a));
+            }
+          } catch (e) {}
+
+          // Retry original request with newly refreshed token
+          const retryHeaders = { ...headers, Authorization: `Bearer ${newToken}` };
+          return apiFetch(url, { ...options, headers: retryHeaders }, true);
+        }
       }
     } catch (e) {
-      // Refresh failed — return original 401 response
+      // Refresh failed — return original response
     }
   }
 
@@ -121,44 +199,58 @@ export function normalizePhone(phone) {
 
 /**
  * Records created listing IDs in localStorage to ensure user-created
- * listings persist locally across sessions.
+ * listings persist locally across sessions for this specific user.
  */
 export function saveCreatedListingId(listingId, user) {
-  if (!listingId) return;
+  if (!listingId || !user) return;
   try {
-    const userKey = `propbazaar_my_listings_${user?.email || user?.phone || 'guest'}`;
-    const userList = JSON.parse(localStorage.getItem(userKey) || '[]');
-    if (!userList.includes(listingId)) {
-      userList.unshift(listingId);
-      localStorage.setItem(userKey, JSON.stringify(userList));
+    const userIdentifier = (user.email || user.phone || '').trim().toLowerCase();
+    if (userIdentifier) {
+      const userKey = `propbazaar_my_listings_${userIdentifier}`;
+      const userList = JSON.parse(localStorage.getItem(userKey) || '[]');
+      if (!userList.includes(listingId)) {
+        userList.unshift(listingId);
+        localStorage.setItem(userKey, JSON.stringify(userList));
+      }
     }
+    // Clean up legacy unauthenticated storage keys that leaked across users
+    localStorage.removeItem('propbazaar_my_listings_local');
+    localStorage.removeItem('propbazaar_my_listings_guest');
+  } catch (e) {}
+}
 
-    const localList = JSON.parse(localStorage.getItem('propbazaar_my_listings_local') || '[]');
-    if (!localList.includes(listingId)) {
-      localList.unshift(listingId);
-      localStorage.setItem('propbazaar_my_listings_local', JSON.stringify(localList));
+/**
+ * Removes a deleted listing ID from user's local tracking list.
+ */
+export function removeCreatedListingId(listingId, user) {
+  if (!listingId || !user) return;
+  try {
+    const userIdentifier = (user.email || user.phone || '').trim().toLowerCase();
+    if (userIdentifier) {
+      const userKey = `propbazaar_my_listings_${userIdentifier}`;
+      const userList = JSON.parse(localStorage.getItem(userKey) || '[]');
+      const updated = userList.filter((id) => id !== listingId);
+      localStorage.setItem(userKey, JSON.stringify(updated));
     }
   } catch (e) {}
 }
 
 /**
  * Checks whether a listing is owned by the given user.
- * Supports email (case-insensitive), normalized phone numbers,
- * contact names, owner IDs, and local storage tracking.
+ * Strictly verifies identity via User ID / Google ID, verified email,
+ * normalized phone number, or user-scoped tracking.
+ * NEVER returns true for other users' listings or legacy browser-wide keys.
  */
 export function isListingOwner(listing, user) {
   if (!listing || !user) return false;
 
-  // 1. Check local storage tracked listings for this user or browser
+  // Cleanup legacy global storage keys that erroneously assigned ownership to all users
   try {
-    const userKey = `propbazaar_my_listings_${user.email || user.phone || 'guest'}`;
-    const userTracked = JSON.parse(localStorage.getItem(userKey) || '[]');
-    if (Array.isArray(userTracked) && userTracked.includes(listing.id)) {
-      return true;
+    if (localStorage.getItem('propbazaar_my_listings_local')) {
+      localStorage.removeItem('propbazaar_my_listings_local');
     }
-    const localTracked = JSON.parse(localStorage.getItem('propbazaar_my_listings_local') || '[]');
-    if (Array.isArray(localTracked) && localTracked.includes(listing.id)) {
-      return true;
+    if (localStorage.getItem('propbazaar_my_listings_guest')) {
+      localStorage.removeItem('propbazaar_my_listings_guest');
     }
   } catch (e) {}
 
@@ -167,53 +259,47 @@ export function isListingOwner(listing, user) {
 
   const userEmail = cleanStr(user.email);
   const userPhone = cleanPhone(user.phone);
-  const userName = cleanStr(user.name);
-  const userId = cleanStr(user.id || user._id || user.googleId);
+  const userId = cleanStr(user.id || user._id || user.googleId || user.sub);
 
   const ownerId = cleanStr(listing.ownerId);
+  const ownerUserId = cleanStr(listing.ownerUserId || listing.userId);
   const ownerEmail = cleanStr(listing.ownerEmail || listing.contact?.email);
   const ownerPhone = cleanPhone(listing.ownerPhone || (listing.ownerId && !listing.ownerId.includes('@') ? listing.ownerId : ''));
   const contactPhone = cleanPhone(listing.contact?.phone);
-  const contactName = cleanStr(listing.contact?.name);
   const contactEmail = cleanStr(listing.contact?.email);
 
-  // 2. Email Match (case-insensitive)
+  // 1. Direct User ID / Google ID Match
+  if (userId) {
+    if (ownerId === userId || ownerUserId === userId) {
+      return true;
+    }
+  }
+
+  // 2. Email Match (case-insensitive exact match)
   if (userEmail) {
     if (ownerId === userEmail || ownerEmail === userEmail || contactEmail === userEmail) {
       return true;
     }
-    if (ownerId.includes(userEmail)) {
-      return true;
-    }
   }
 
-  // 3. Direct User ID / Google ID Match
-  if (userId) {
-    if (ownerId === userId || cleanStr(listing.userId) === userId) {
-      return true;
-    }
-  }
-
-  // 4. Phone Number Match (normalized last 10 digits)
+  // 3. Phone Number Match (normalized last 10 digits, minimum 7 digits)
   if (userPhone && userPhone.length >= 7) {
     if (ownerPhone === userPhone || contactPhone === userPhone || cleanPhone(listing.ownerId) === userPhone) {
       return true;
     }
   }
 
-  // 5. Contact Name match fallback (especially useful when user logged in via Google with empty phone)
-  if (userName && contactName && userName === contactName) {
-    // If ownerId is generic, empty, matches name, or matches user
-    if (!ownerId || ownerId === 'user' || ownerId === userName) {
-      return true;
+  // 4. Check user-scoped local storage tracked listings (must match this user's specific identity)
+  try {
+    const userIdentifier = userEmail || userPhone;
+    if (userIdentifier) {
+      const userKey = `propbazaar_my_listings_${userIdentifier}`;
+      const userTracked = JSON.parse(localStorage.getItem(userKey) || '[]');
+      if (Array.isArray(userTracked) && userTracked.includes(listing.id)) {
+        return true;
+      }
     }
-    if (userEmail && (ownerId === userEmail || !ownerId.includes('@'))) {
-      return true;
-    }
-    if (userPhone && (ownerPhone === userPhone || contactPhone === userPhone)) {
-      return true;
-    }
-  }
+  } catch (e) {}
 
   return false;
 }
