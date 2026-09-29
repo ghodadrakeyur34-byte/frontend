@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ShieldCheck, LayoutDashboard, Building2, Users as UsersIcon, Flag, MessageSquare, FolderTree, PhoneCall, LogOut, Globe, CheckCircle2, Clock, Sparkles, Ban, X, PlusCircle, Pencil, Trash2 } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, Building2, Users as UsersIcon, Flag, MessageSquare, FolderTree, PhoneCall, LogOut, Globe, CheckCircle2, Clock, Sparkles, Ban, X, PlusCircle, Pencil, Trash2, Eye, EyeOff } from 'lucide-react';
 import { apiFetch } from '../utils';
 
 const ADMIN_KEY = 'marimilkat_admin';
@@ -17,6 +17,7 @@ function getStoredAdmin() {
 function AdminLogin({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -25,10 +26,12 @@ function AdminLogin({ onLogin }) {
     setError('');
     setLoading(true);
     try {
+      const cleanEmail = email.trim();
+      const cleanPassword = password.trim();
       const res = await apiFetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: cleanEmail, password: cleanPassword }),
       });
       const isJson = res.headers.get('content-type')?.includes('application/json');
       const data = isJson ? await res.json() : {};
@@ -49,15 +52,56 @@ function AdminLogin({ onLogin }) {
         </div>
         <h1>Admin Panel</h1>
         <p className="admin-login-sub">MariMilkat Administration</p>
-        {error && <div className="admin-error">{error}</div>}
+        {error && (
+          <div className="admin-error" style={{ marginBottom: '1.2rem' }}>
+            <div style={{ fontWeight: 600 }}>{error}</div>
+            <div style={{ fontSize: '0.8rem', marginTop: '0.35rem', opacity: 0.9 }}>
+              Admin Email: <code>marimilkatadmin@gmail.com</code>
+            </div>
+          </div>
+        )}
         <form onSubmit={handleSubmit}>
           <div className="admin-field">
             <label>Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="marimilkatadmin@gmail.com" required />
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="marimilkatadmin@gmail.com"
+              required
+            />
           </div>
           <div className="admin-field">
             <label>Password</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required />
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                style={{ paddingRight: '2.5rem' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(v => !v)}
+                style={{
+                  position: 'absolute',
+                  right: '0.75rem',
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--admin-text-secondary, #94a3b8)',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
           <button type="submit" className="admin-login-btn" disabled={loading}>
             {loading ? 'Signing in…' : 'Sign In'}

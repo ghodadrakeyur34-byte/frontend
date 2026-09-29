@@ -92,7 +92,7 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
     }
 
     const isAdminEmail = cleanEmail === 'marimilkatadmin@gmail.com';
-    const isAdminPass = password === 'Admin@MariMilkat' || password === '@dmin@Milkat' || lowerPass === '@dmin@milkat' || lowerPass === 'admin@marimilkat';
+    const isAdminPass = cleanPass === 'Admin@MariMilkat' || cleanPass === '@dmin@Milkat' || lowerPass === '@dmin@milkat' || lowerPass === 'admin@marimilkat';
 
     if (isAdminEmail && isAdminPass) {
       setIsSubmitting(true);
@@ -100,7 +100,7 @@ export default function LoginPage({ onLogin, onAuthSuccess, redirectAfter }) {
         const res = await apiFetch('/api/admin/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: cleanEmail, password }),
+          body: JSON.stringify({ email: cleanEmail, password: cleanPass }),
         });
         const data = await res.json();
         if (res.ok && data.success) {
