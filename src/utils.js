@@ -74,30 +74,34 @@ export async function apiFetch(url, options = {}, _isRetry = false) {
 
   options.credentials = 'include';
 
-  // Automatically attach Bearer token from stored user session
-  if (!headers['Authorization']) {
+  const isAdminRequest = url.includes('/api/admin');
+
+  // Handle admin token
+  let adminToken = headers['x-admin-token'];
+  if (!adminToken) {
+    try {
+      const adminStored = localStorage.getItem('marimilkat_admin');
+      if (adminStored) {
+        const a = JSON.parse(adminStored);
+        if (a?.token) {
+          adminToken = a.token;
+          headers['x-admin-token'] = adminToken;
+        }
+      }
+    } catch (e) {}
+  }
+
+  // If this is an admin request and we have an admin token, use it as Authorization
+  if (isAdminRequest && adminToken) {
+    headers['Authorization'] = `Bearer ${adminToken}`;
+  } else if (!headers['Authorization']) {
+    // Automatically attach Bearer token from stored user session for non-admin requests
     try {
       const stored = localStorage.getItem('propbazaar_user');
       if (stored) {
         const u = JSON.parse(stored);
         if (u?.token) {
           headers['Authorization'] = `Bearer ${u.token}`;
-        }
-      }
-    } catch (e) {}
-  }
-
-  // Automatically attach Admin token if admin session exists
-  if (!headers['x-admin-token']) {
-    try {
-      const adminStored = localStorage.getItem('marimilkat_admin');
-      if (adminStored) {
-        const a = JSON.parse(adminStored);
-        if (a?.token) {
-          headers['x-admin-token'] = a.token;
-          if (!headers['Authorization']) {
-            headers['Authorization'] = `Bearer ${a.token}`;
-          }
         }
       }
     } catch (e) {}

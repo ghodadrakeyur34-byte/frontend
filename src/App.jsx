@@ -180,7 +180,9 @@ export default function App() {
   // Redirect away from #login if user is already logged in
   useEffect(() => {
     if (currentHash === '#login' && currentUser) {
-      const target = loginRedirect || '#home';
+      const target = (currentUser.role === 'admin' || currentUser.isAdmin)
+        ? '#admin'
+        : (loginRedirect && loginRedirect !== '#login' ? loginRedirect : '#home');
       setLoginRedirect(null);
       window.location.hash = target;
     }
@@ -265,7 +267,9 @@ export default function App() {
       } catch (e) {}
     }
 
-    const redirectTo = loginRedirect || '#home';
+    const redirectTo = (fullUser.role === 'admin' || fullUser.isAdmin)
+      ? '#admin'
+      : (loginRedirect && loginRedirect !== '#login' ? loginRedirect : '#home');
     setLoginRedirect(null);
     window.location.hash = redirectTo;
   };
