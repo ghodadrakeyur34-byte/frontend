@@ -9,17 +9,23 @@ export default function MyListingsView({ listings, currentUser, onDeleteListing 
   const [deleteTarget, setDeleteTarget] = useState(null); // listing to confirm delete
   const [filterType, setFilterType] = useState('all');
 
-  // Filter listings owned by the current user
+  // Filter listings owned by the current user (includes both approved and pending listings)
   const myListings = listings.filter((l) => isListingOwner(l, currentUser));
 
   const houses = myListings.filter((l) => l.type === 'house');
   const plots = myListings.filter((l) => l.type === 'plot');
+  const pendingListings = myListings.filter((l) => l.status === 'pending');
+  const approvedListings = myListings.filter((l) => (l.status || 'active') === 'active' || l.status === 'sold');
 
   const totalValue = myListings.reduce((sum, l) => sum + l.price, 0);
 
-  // Apply type filter
+  // Apply type/status filter
   const displayedListings = filterType === 'all'
     ? myListings
+    : filterType === 'pending'
+    ? pendingListings
+    : filterType === 'active'
+    ? approvedListings
     : myListings.filter((l) => l.type === filterType);
 
   const handleDeleteClick = (e, listing) => {
@@ -66,18 +72,47 @@ export default function MyListingsView({ listings, currentUser, onDeleteListing 
             <div className="ml-stat-label">{t('myListings.totalListings')}</div>
           </div>
           <div className="ml-stat">
-            <div className="ml-stat-num">{houses.length}</div>
-            <div className="ml-stat-label">{t('myListings.houses')}</div>
+            <div className="ml-stat-num" style={{ color: '#10b981' }}>{approvedListings.length}</div>
+            <div className="ml-stat-label">{t('myListings.approvedLive')}</div>
           </div>
           <div className="ml-stat">
-            <div className="ml-stat-num">{plots.length}</div>
-            <div className="ml-stat-label">{t('myListings.plots')}</div>
+            <div className="ml-stat-num" style={{ color: pendingListings.length > 0 ? '#eab308' : 'inherit' }}>
+              {pendingListings.length}
+            </div>
+            <div className="ml-stat-label">{t('myListings.pendingApproval')}</div>
           </div>
           <div className="ml-stat">
             <div className="ml-stat-num">{formatPrice(totalValue)}</div>
             <div className="ml-stat-label">{t('myListings.portfolioValue')}</div>
           </div>
         </div>
+
+        {/* Pending Approval Notice Banner */}
+        {pendingListings.length > 0 && (
+          <div
+            className="mylistings-pending-banner"
+            style={{
+              background: 'rgba(234, 179, 8, 0.12)',
+              border: '1px solid rgba(234, 179, 8, 0.4)',
+              borderRadius: 'var(--r-md, 12px)',
+              padding: '1rem 1.25rem',
+              marginBottom: '1.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+            }}
+          >
+            <span style={{ fontSize: '1.5rem' }}>⏳</span>
+            <div>
+              <strong style={{ display: 'block', color: '#facc15', fontSize: '0.95rem', marginBottom: '2px' }}>
+                {t('myListings.pendingBannerTitle')} ({pendingListings.length})
+              </strong>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text2, #cbd5e1)' }}>
+                {t('myListings.pendingBannerText')}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Filter Tabs */}
         {myListings.length > 0 && (
@@ -102,6 +137,38 @@ export default function MyListingsView({ listings, currentUser, onDeleteListing 
             >
               <Building2 size={14} /> {t('myListings.plots')} ({plots.length})
             </button>
+            {pendingListings.length > 0 && (
+              <button
+                className={`ml-filter-btn ${filterType === 'pending' ? 'active' : ''}`}
+                onClick={() => setFilterType('pending')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  color: filterType === 'pending' ? '#0f172a' : '#eab308',
+                  borderColor: filterType === 'pending' ? '#eab308' : undefined,
+                  background: filterType === 'pending' ? '#eab308' : undefined,
+                }}
+              >
+                ⏳ {t('myListings.pendingApproval')} ({pendingListings.length})
+              </button>
+            )}
+            {approvedListings.length > 0 && pendingListings.length > 0 && (
+              <button
+                className={`ml-filter-btn ${filterType === 'active' ? 'active' : ''}`}
+                onClick={() => setFilterType('active')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  color: filterType === 'active' ? '#0f172a' : '#10b981',
+                  borderColor: filterType === 'active' ? '#10b981' : undefined,
+                  background: filterType === 'active' ? '#10b981' : undefined,
+                }}
+              >
+                ✓ {t('myListings.approvedLive')} ({approvedListings.length})
+              </button>
+            )}
           </div>
         )}
 
@@ -139,7 +206,17 @@ export default function MyListingsView({ listings, currentUser, onDeleteListing 
                 </button>
               </>
             ) : (
-              <p>{filterType === 'house' ? t('myListings.noHouses') : t('myListings.noPlots')}</p>
+              <p>
+                {filterType === 'house'
+                  ? t('myListings.noHouses')
+                  : filterType === 'plot'
+                  ? t('myListings.noPlots')
+                  : filterType === 'pending'
+                  ? t('myListings.noPending')
+                  : filterType === 'active'
+                  ? t('myListings.noApproved')
+                  : t('myListings.noListings')}
+              </p>
             )}
           </div>
         )}

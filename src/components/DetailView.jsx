@@ -29,10 +29,10 @@ export default function DetailView({ id, listings, onUpdatePrice, onDeleteListin
   const isOwner = isListingOwner(listing, currentUser);
   const isAdmin = currentUser?.role === 'admin' || currentUser?.isAdmin;
   const canEditPrice = Boolean(isOwner || isAdmin);
-  const isHidden = listing?.status === 'rejected' || listing?.status === 'deleted';
+  const isApproved = (listing?.status === 'active' || listing?.status === 'sold') && listing?.status !== 'pending' && listing?.status !== 'rejected';
   const isPending = listing?.status === 'pending';
 
-  if (!listing || (isHidden && !isOwner && !isAdmin)) {
+  if (!listing || (!isApproved && !isOwner && !isAdmin)) {
     return (
       <main id="page-detail" className="page active">
         <section className="detail-page">
@@ -131,9 +131,9 @@ export default function DetailView({ id, listings, onUpdatePrice, onDeleteListin
     return visible + hidden;
   };
 
-  // Find up to 3 similar properties (same type, excluding current)
+  // Find up to 3 similar properties (same type, excluding current, must be admin-approved)
   const similarProperties = listings
-    .filter((x) => x.type === type && x.id !== id)
+    .filter((x) => x.type === type && x.id !== id && (x.status === 'active' || x.status === 'sold') && x.status !== 'pending' && x.status !== 'rejected')
     .slice(0, 3);
 
   return (

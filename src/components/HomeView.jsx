@@ -58,7 +58,9 @@ export default function HomeView({ listings, onSearch, userLocation, onRequestLo
     window.location.hash = '#browse';
   };
 
-  const recentListings = listings.filter((l) => l.status !== 'rejected' && l.status !== 'deleted').slice(0, 6);
+  // Only show admin-approved properties on Home page ('active' or 'sold')
+  const approvedListings = listings.filter((l) => (l.status === 'active' || l.status === 'sold') && l.status !== 'pending' && l.status !== 'rejected');
+  const recentListings = approvedListings.slice(0, 6);
 
   return (
     <main id="page-home" className="page active">
@@ -126,7 +128,7 @@ export default function HomeView({ listings, onSearch, userLocation, onRequestLo
           <p>{t('map.sectionSubtitle', 'Hover over any pin to view house and plot details instantly')}</p>
         </div>
         <PropertyMap
-          listings={listings}
+          listings={approvedListings}
           userLocation={userLocation}
           onRequestLocation={onRequestLocation}
           height="520px"

@@ -39,7 +39,9 @@ export default function BrowseView({ listings, initialFilters, clearInitialFilte
   const areaQuery = filterArea.toLowerCase().trim();
 
   let filteredListings = listings.filter((l) => {
-    const isVisible = l.status !== 'rejected' && l.status !== 'deleted';
+    // Only show admin-approved properties in Browse section ('active' or 'sold')
+    // Properties pending admin approval must never appear in browse
+    const isApproved = (l.status === 'active' || l.status === 'sold') && l.status !== 'pending' && l.status !== 'rejected';
     const matchesType = !filterType || l.type === filterType;
     const matchesMinPrice = l.price >= minPrice;
     const matchesMaxPrice = l.price <= maxPrice;
@@ -47,7 +49,7 @@ export default function BrowseView({ listings, initialFilters, clearInitialFilte
       l.area.toLowerCase().includes(areaQuery) || 
       l.city.toLowerCase().includes(areaQuery);
 
-    return isVisible && matchesType && matchesMinPrice && matchesMaxPrice && matchesArea;
+    return isApproved && matchesType && matchesMinPrice && matchesMaxPrice && matchesArea;
   });
 
   // Sorting logic
