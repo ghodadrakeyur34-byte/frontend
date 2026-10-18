@@ -6,7 +6,7 @@ import PropertyCard from './PropertyCard';
 import PropertyMap from './PropertyMap';
 import ReportButton from './ReportButton';
 
-export default function DetailView({ id, listings, onUpdatePrice, onDeleteListing, currentUser, onRequireLogin, userLocation }) {
+export default function DetailView({ id, listings, onUpdatePrice, onDeleteListing, onEditListing, currentUser, onRequireLogin, userLocation }) {
   const { t } = useTranslation();
   const [activeIdx, setActiveIdx] = useState(0);
   const [isEditingPrice, setIsEditingPrice] = useState(false);
@@ -235,19 +235,44 @@ export default function DetailView({ id, listings, onUpdatePrice, onDeleteListin
                   ) : (
                     <div className="price-display-row">
                       <div className="detail-price">{formatPrice(price)}</div>
-                      <button
-                        className={`btn-edit-price ${!allowed ? 'disabled' : ''}`}
-                        onClick={allowed ? handleOpenPriceEdit : undefined}
-                        disabled={!allowed}
-                        title={
-                          allowed
-                            ? t('detail.editPriceTooltip', { remaining, s: remaining !== 1 ? 's' : '' })
-                            : t('detail.limitReached')
-                        }
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                      >
-                        <Pencil size={15} /> {t('detail.editPrice')}
-                      </button>
+                      <div className="price-actions-group" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                        <button
+                          className={`btn-edit-price ${!allowed ? 'disabled' : ''}`}
+                          onClick={allowed ? handleOpenPriceEdit : undefined}
+                          disabled={!allowed}
+                          title={
+                            allowed
+                              ? t('detail.editPriceTooltip', { remaining, s: remaining !== 1 ? 's' : '' })
+                              : t('detail.limitReached')
+                          }
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                        >
+                          <Pencil size={15} /> {t('detail.editPrice')}
+                        </button>
+                        {onEditListing && (
+                          <button
+                            className="btn-edit-details"
+                            onClick={() => onEditListing(listing)}
+                            title={t('detail.editProperty', 'Edit Property Details')}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              padding: '0.45rem 0.9rem',
+                              borderRadius: 'var(--r-sm)',
+                              background: 'var(--accent)',
+                              color: '#0f172a',
+                              fontWeight: 600,
+                              fontSize: '0.82rem',
+                              border: 'none',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease',
+                            }}
+                          >
+                            <Pencil size={14} /> {t('detail.editProperty', 'Edit Property Details')}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
 
@@ -362,9 +387,35 @@ export default function DetailView({ id, listings, onUpdatePrice, onDeleteListin
             <button className="btn-share" onClick={handleShare} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
               <Share2 size={16} /> {t('detail.shareListing')}
             </button>
-            <ReportButton type="listing" targetId={id} reporterEmail={currentUser?.email} />
+            {/* Owner-only Edit & Delete Options */}
+            {isOwner && onEditListing && (
+              <button
+                className="btn-edit-property-detail"
+                onClick={() => onEditListing(listing)}
+                title={t('detail.editProperty', 'Edit Property Details')}
+                style={{
+                  width: '100%',
+                  marginTop: '0.75rem',
+                  padding: '0.75rem 1rem',
+                  borderRadius: 'var(--r-md, 8px)',
+                  background: 'var(--accent)',
+                  color: '#0f172a',
+                  border: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  fontWeight: 700,
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 12px rgba(226, 184, 87, 0.25)',
+                }}
+              >
+                <Pencil size={16} /> {t('detail.editProperty', 'Edit Property Details')}
+              </button>
+            )}
 
-            {/* Owner-only Delete Option */}
             {isOwner && onDeleteListing && (
               <button
                 className="btn-delete-detail"

@@ -118,7 +118,9 @@
     "loginToView": "Login to View Contact Number",
     "loginHint": "Sign in to access seller contact details",
     "shareListing": "Share Listing",
-    "similarProperties": "Similar Properties"
+    "similarProperties": "Similar Properties",
+    "editProperty": "Edit Property Details",
+    "editFullDetails": "Edit All Details"
   },
   "myListings": {
     "title": "My Listings",
@@ -133,6 +135,8 @@
     "plots": "Plots",
     "portfolioValue": "Portfolio Value",
     "all": "All",
+    "edit": "Edit",
+    "editTooltip": "Edit all property details",
     "delete": "Delete",
     "noListings": "You haven't posted any properties yet.",
     "postFirst": "Post Your First Property",
@@ -143,6 +147,14 @@
     "deleteTitle": "Delete Listing?",
     "deleteConfirm": "Are you sure you want to remove <1>\"{{title}}\"</1>? This action cannot be undone.",
     "yesDelete": "Yes, Delete"
+  },
+  "editModal": {
+    "title": "Edit Entire Property Details",
+    "subtitle": "Update all specifications, location, photos, and contact information",
+    "saveChanges": "Save Changes",
+    "saving": "Saving Changes...",
+    "cancel": "Cancel",
+    "successMessage": "Property details updated successfully!"
   },
   "login": {
     "brandDescription": "Your trusted marketplace for buying and selling properties. Join thousands of verified users today.",

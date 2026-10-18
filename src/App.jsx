@@ -8,6 +8,8 @@ import { canChangePrice, apiFetch, saveCreatedListingId, removeCreatedListingId 
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 
+import EditListingModal from './components/EditListingModal';
+
 // Lazy load route components for minimal initial bundle size and instant FCP
 const BrowseView = lazy(() => import('./components/BrowseView'));
 const SellView = lazy(() => import('./components/SellView'));
@@ -23,6 +25,7 @@ export default function App() {
   const { t } = useTranslation();
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editingListing, setEditingListing] = useState(null);
   const [error, setError] = useState(null);
 
   const [currentUser, setCurrentUser] = useState(() => {
@@ -176,6 +179,17 @@ export default function App() {
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
+
+  // Open edit modal if route hash is #edit/:id
+  useEffect(() => {
+    if (currentHash.startsWith('#edit/')) {
+      const editId = currentHash.split('/')[1];
+      const target = listings.find((l) => String(l.id) === String(editId));
+      if (target) {
+        setEditingListing(target);
+      }
+    }
+  }, [currentHash, listings]);
 
   // Redirect away from #login if user is already logged in
   useEffect(() => {
@@ -404,6 +418,39 @@ export default function App() {
     }
   };
 
+  const handleUpdateListing = async (listingId, updatedData) => {
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      const userIdentifier = currentUser?.phone || currentUser?.email || '';
+      if (userIdentifier) {
+        headers['Owner-Phone'] = userIdentifier;
+        headers['x-owner-phone'] = userIdentifier;
+      }
+
+      const res = await apiFetch(`/api/listings/${listingId}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(updatedData),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to update property details.');
+      }
+
+      const updated = data.listing || { ...listings.find((l) => l.id === listingId), ...updatedData };
+
+      setListings((prev) =>
+        prev.map((l) => (l.id === listingId ? updated : l))
+      );
+
+      return { success: true, listing: updated };
+    } catch (err) {
+      console.error('Update listing error:', err);
+      throw err;
+    }
+  };
+
   const handleHeroSearch = (filters) => {
     setSearchFilters(filters);
   };
@@ -495,6 +542,7 @@ export default function App() {
           listings={listings}
           currentUser={currentUser}
           onDeleteListing={handleDeleteListing}
+          onEditListing={(listing) => setEditingListing(listing)}
         />
       );
     }
@@ -506,8 +554,24 @@ export default function App() {
           listings={listings}
           onUpdatePrice={handleUpdatePrice}
           onDeleteListing={handleDeleteListing}
+          onEditListing={(listing) => setEditingListing(listing)}
           currentUser={currentUser}
           onRequireLogin={() => navigateToLogin(`#detail/${id}`)}
+          userLocation={userLocation}
+        />
+      );
+    }
+    if (hash.startsWith('#edit/')) {
+      const id = hash.split('/')[1];
+      return (
+        <DetailView
+          id={id}
+          listings={listings}
+          onUpdatePrice={handleUpdatePrice}
+          onDeleteListing={handleDeleteListing}
+          onEditListing={(listing) => setEditingListing(listing)}
+          currentUser={currentUser}
+          onRequireLogin={() => navigateToLogin(`#edit/${id}`)}
           userLocation={userLocation}
         />
       );
@@ -588,6 +652,21 @@ export default function App() {
           <span>📞 Help Desk</span>
         </a>
       )}
+
+      <EditListingModal
+        isOpen={Boolean(editingListing)}
+        listing={editingListing}
+        onClose={() => {
+          setEditingListing(null);
+          if (window.location.hash.startsWith('#edit/')) {
+            const editId = window.location.hash.split('/')[1];
+            window.location.hash = `#detail/${editId}`;
+          }
+        }}
+        onSave={handleUpdateListing}
+        userLocation={userLocation}
+        onRequestLocation={handleRequestLocation}
+      />
 
       <LocationModal
         isOpen={showLocationModal}

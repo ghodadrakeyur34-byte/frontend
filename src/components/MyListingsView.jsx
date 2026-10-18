@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
-import { PlusCircle, Home, Building2, Trash2, Inbox, AlertTriangle } from 'lucide-react';
+import { PlusCircle, Home, Building2, Trash2, Inbox, AlertTriangle, Pencil } from 'lucide-react';
 import { formatPrice, timeAgo, isListingOwner } from '../utils';
 import PropertyCard from './PropertyCard';
 
-export default function MyListingsView({ listings, currentUser, onDeleteListing }) {
+export default function MyListingsView({ listings, currentUser, onDeleteListing, onEditListing }) {
   const { t } = useTranslation();
   const [deleteTarget, setDeleteTarget] = useState(null); // listing to confirm delete
   const [filterType, setFilterType] = useState('all');
@@ -178,14 +178,27 @@ export default function MyListingsView({ listings, currentUser, onDeleteListing 
             {displayedListings.map((listing) => (
               <div key={listing.id} className="ml-card-wrapper">
                 <PropertyCard listing={listing} />
-                <button
-                  className="ml-delete-btn"
-                  onClick={(e) => handleDeleteClick(e, listing)}
-                  title="Delete this listing"
-                  style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                >
-                  <Trash2 size={14} /> {t('myListings.delete')}
-                </button>
+                <div className="ml-card-actions">
+                  <button
+                    className="ml-edit-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditListing?.(listing);
+                    }}
+                    title={t('myListings.edit', 'Edit Property Details')}
+                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
+                  >
+                    <Pencil size={13} /> {t('myListings.edit', 'Edit')}
+                  </button>
+                  <button
+                    className="ml-delete-btn"
+                    onClick={(e) => handleDeleteClick(e, listing)}
+                    title={t('myListings.delete', 'Delete this listing')}
+                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
+                  >
+                    <Trash2 size={13} /> {t('myListings.delete', 'Delete')}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
