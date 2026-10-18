@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PlusCircle, Home, Building2, UploadCloud, CheckCircle2, Lock, LogIn, X, MapPin } from 'lucide-react';
+import { PlusCircle, Home, Building2, UploadCloud, CheckCircle2, Lock, LogIn, X, MapPin, KeyRound, Tag } from 'lucide-react';
 import { genId, saveCreatedListingId } from '../utils';
 import LocationPickerMap from './LocationPickerMap';
 
 export default function SellView({ onAddListing, currentUser, onRequireLogin, userLocation, onRequestLocation }) {
   const { t } = useTranslation();
+  const [purpose, setPurpose] = useState('sale');
   const [propType, setPropType] = useState('house');
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
@@ -24,6 +25,7 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
       const savedDraft = sessionStorage.getItem('sell_form_draft');
       if (savedDraft) {
         const draft = JSON.parse(savedDraft);
+        if (draft.purpose) setPurpose(draft.purpose);
         if (draft.propType) setPropType(draft.propType);
         if (draft.title) setTitle(draft.title);
         if (draft.desc) setDesc(draft.desc);
@@ -62,6 +64,7 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
   const saveDraft = () => {
     try {
       sessionStorage.setItem('sell_form_draft', JSON.stringify({
+        purpose,
         propType,
         title,
         desc,
@@ -209,6 +212,7 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
     const id = genId();
     const newListing = {
       id,
+      purpose,
       type: propType,
       title: title.trim(),
       desc: desc.trim(),
@@ -287,6 +291,29 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
             {/* Hidden inputs to bind latitude and longitude to form */}
             <input type="hidden" name="latitude" id="formLatitude" value={listingCoords?.lat ?? ''} />
             <input type="hidden" name="longitude" id="formLongitude" value={listingCoords?.lng ?? ''} />
+
+            {/* Purpose Toggle: For Sale vs For Rent */}
+            <div className="form-group">
+              <label>{t('sell.purpose', 'Purpose')}</label>
+              <div className="toggle-group">
+                <button
+                  type="button"
+                  className={`toggle-btn ${purpose === 'sale' ? 'active' : ''}`}
+                  onClick={() => setPurpose('sale')}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Tag size={16} /> {t('sell.forSale', 'For Sale')}
+                </button>
+                <button
+                  type="button"
+                  className={`toggle-btn ${purpose === 'rent' ? 'active' : ''}`}
+                  onClick={() => setPurpose('rent')}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <KeyRound size={16} /> {t('sell.forRent', 'For Rent')}
+                </button>
+              </div>
+            </div>
 
             {/* Category Toggle */}
             <div className="form-group">

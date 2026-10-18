@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Frown, Pencil, AlertTriangle, CheckCircle2, MapPin, Home, Building2, Phone, Eye, Lock, Share2, Clock, Trash2 } from 'lucide-react';
+import { ArrowLeft, Frown, Pencil, AlertTriangle, CheckCircle2, MapPin, Home, Building2, Phone, Eye, Lock, Share2, Clock, Trash2, Tag } from 'lucide-react';
 import { formatPrice, timeAgo, canChangePrice, getRemainingPriceChanges, isListingOwner } from '../utils';
 import PropertyCard from './PropertyCard';
 import PropertyMap from './PropertyMap';
@@ -234,7 +234,14 @@ export default function DetailView({ id, listings, onUpdatePrice, onDeleteListin
                     </div>
                   ) : (
                     <div className="price-display-row">
-                      <div className="detail-price">{formatPrice(price)}</div>
+                      <div className="detail-price">
+                        {formatPrice(price)}
+                        {listing.purpose === 'rent' && (
+                          <span style={{ fontSize: '1rem', fontWeight: 500, color: 'var(--text2)', marginLeft: '6px' }}>
+                            / {t('common.month', 'mo')}
+                          </span>
+                        )}
+                      </div>
                       <div className="price-actions-group" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                         <button
                           className={`btn-edit-price ${!allowed ? 'disabled' : ''}`}
@@ -294,7 +301,14 @@ export default function DetailView({ id, listings, onUpdatePrice, onDeleteListin
               ) : (
                 /* Regular viewer/buyer only sees the price */
                 <div className="price-display-row">
-                  <div className="detail-price">{formatPrice(price)}</div>
+                  <div className="detail-price">
+                    {formatPrice(price)}
+                    {listing.purpose === 'rent' && (
+                      <span style={{ fontSize: '1rem', fontWeight: 500, color: 'var(--text2)', marginLeft: '6px' }}>
+                        / {t('common.month', 'mo')}
+                      </span>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -305,6 +319,13 @@ export default function DetailView({ id, listings, onUpdatePrice, onDeleteListin
             </div>
             
             <div className="specs-grid">
+              <div className="spec-item">
+                <div className="spec-label">{t('sell.purpose', 'Purpose')}</div>
+                <div className="spec-value" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: listing.purpose === 'rent' ? '#34d399' : 'inherit', fontWeight: 600 }}>
+                  <Tag size={16} />
+                  {listing.purpose === 'rent' ? t('hero.rent', 'Rent') : t('hero.sale', 'Sale')}
+                </div>
+              </div>
               <div className="spec-item">
                 <div className="spec-label">{t('detail.type')}</div>
                 <div className="spec-value" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

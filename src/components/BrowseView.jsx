@@ -9,6 +9,7 @@ export default function BrowseView({ listings, initialFilters, clearInitialFilte
   const { t } = useTranslation();
   const [parent] = useAutoAnimate();
   const [filterType, setFilterType] = useState('');
+  const [filterPurpose, setFilterPurpose] = useState(initialFilters?.purpose || '');
   const [filterMin, setFilterMin] = useState('');
   const [filterMax, setFilterMax] = useState('');
   const [filterArea, setFilterArea] = useState('');
@@ -20,6 +21,7 @@ export default function BrowseView({ listings, initialFilters, clearInitialFilte
     if (initialFilters) {
       if (initialFilters.type !== undefined) setFilterType(initialFilters.type);
       if (initialFilters.area !== undefined) setFilterArea(initialFilters.area);
+      if (initialFilters.purpose !== undefined) setFilterPurpose(initialFilters.purpose);
       // Once applied, clear them from the parent state so they don't lock the inputs
       clearInitialFilters();
     }
@@ -27,6 +29,7 @@ export default function BrowseView({ listings, initialFilters, clearInitialFilte
 
   const handleClearAll = () => {
     setFilterType('');
+    setFilterPurpose('');
     setFilterMin('');
     setFilterMax('');
     setFilterArea('');
@@ -43,13 +46,14 @@ export default function BrowseView({ listings, initialFilters, clearInitialFilte
     // Properties pending admin approval must never appear in browse
     const isApproved = (l.status === 'active' || l.status === 'sold') && l.status !== 'pending' && l.status !== 'rejected';
     const matchesType = !filterType || l.type === filterType;
+    const matchesPurpose = !filterPurpose || (l.purpose || 'sale') === filterPurpose;
     const matchesMinPrice = l.price >= minPrice;
     const matchesMaxPrice = l.price <= maxPrice;
     const matchesArea = !areaQuery || 
       l.area.toLowerCase().includes(areaQuery) || 
       l.city.toLowerCase().includes(areaQuery);
 
-    return isApproved && matchesType && matchesMinPrice && matchesMaxPrice && matchesArea;
+    return isApproved && matchesType && matchesPurpose && matchesMinPrice && matchesMaxPrice && matchesArea;
   });
 
   // Sorting logic
@@ -110,6 +114,18 @@ export default function BrowseView({ listings, initialFilters, clearInitialFilte
             <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <SlidersHorizontal size={18} color="var(--accent)" /> {t('browse.filters')}
             </h3>
+            <div className="filter-group">
+              <label htmlFor="filterPurpose">{t('browse.purpose', 'Purpose')}</label>
+              <select
+                id="filterPurpose"
+                value={filterPurpose}
+                onChange={(e) => setFilterPurpose(e.target.value)}
+              >
+                <option value="">{t('hero.allPurposes', 'All (Buy & Rent)')}</option>
+                <option value="sale">{t('hero.buy', 'Buy')}</option>
+                <option value="rent">{t('hero.rent', 'Rent')}</option>
+              </select>
+            </div>
             <div className="filter-group">
               <label htmlFor="filterType">{t('browse.propertyType')}</label>
               <select

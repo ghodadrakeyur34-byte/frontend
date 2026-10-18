@@ -401,39 +401,56 @@ button {
 }
 
 .action-btn {
-  padding: 1rem 2.5rem;
+  padding: 0.85rem 1.85rem;
   border-radius: var(--r-md);
-  font-size: 1rem;
+  font-size: 0.98rem;
   font-weight: 600;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.6rem;
   background: transparent;
   border: none;
   color: #ffffff;
+  cursor: pointer;
 }
 
 .action-btn.buy {
-  background: transparent;
+  background: rgba(226, 184, 87, 0.08);
   border: 2px solid var(--accent);
   color: var(--accent);
 }
 
 .action-btn.buy:hover {
   background: var(--accent);
-  color: #fff;
+  color: #090d16;
+  box-shadow: 0 4px 18px rgba(226, 184, 87, 0.3);
 }
 
 .action-btn.sell {
   background: var(--accent);
   border: 2px solid var(--accent);
-  color: #fff;
+  color: #090d16;
 }
 
 .action-btn.sell:hover {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
+  color: #fff;
+  box-shadow: 0 4px 18px rgba(217, 119, 6, 0.35);
+}
+
+.action-btn.rent {
+  background: rgba(16, 185, 129, 0.1);
+  border: 2px solid #10b981;
+  color: #34d399;
+}
+
+.action-btn.rent:hover {
+  background: #10b981;
+  border-color: #10b981;
+  color: #fff;
+  box-shadow: 0 4px 18px rgba(16, 185, 129, 0.35);
 }
 
 /* STATS */

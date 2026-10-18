@@ -10,6 +10,8 @@ import {
   MapPin,
   Pencil,
   Loader2,
+  KeyRound,
+  Tag,
 } from 'lucide-react';
 import { getRemainingPriceChanges, canChangePrice, formatPrice } from '../utils';
 import LocationPickerMap from './LocationPickerMap';
@@ -24,6 +26,7 @@ export default function EditListingModal({
 }) {
   const { t } = useTranslation();
 
+  const [purpose, setPurpose] = useState('sale');
   const [propType, setPropType] = useState('house');
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
@@ -66,6 +69,7 @@ export default function EditListingModal({
   // Populate form with current listing data when listing changes or modal opens
   useEffect(() => {
     if (listing && isOpen) {
+      setPurpose(listing.purpose || 'sale');
       setPropType(listing.type || 'house');
       setTitle(listing.title || '');
       setDesc(listing.desc || '');
@@ -237,6 +241,7 @@ export default function EditListingModal({
         : defaultCoord.lng;
 
     const updatedData = {
+      purpose,
       type: propType,
       title: title.trim(),
       desc: desc.trim(),
@@ -340,6 +345,29 @@ export default function EditListingModal({
           )}
 
           <form id="editPropertyForm" onSubmit={handleSubmit}>
+            {/* Purpose Toggle: For Sale vs For Rent */}
+            <div className="form-group">
+              <label>{t('sell.purpose', 'Purpose')}</label>
+              <div className="toggle-group">
+                <button
+                  type="button"
+                  className={`toggle-btn ${purpose === 'sale' ? 'active' : ''}`}
+                  onClick={() => setPurpose('sale')}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Tag size={16} /> {t('sell.forSale', 'For Sale')}
+                </button>
+                <button
+                  type="button"
+                  className={`toggle-btn ${purpose === 'rent' ? 'active' : ''}`}
+                  onClick={() => setPurpose('rent')}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <KeyRound size={16} /> {t('sell.forRent', 'For Rent')}
+                </button>
+              </div>
+            </div>
+
             {/* Category Toggle */}
             <div className="form-group">
               <label>{t('sell.propertyType', 'Property Type')}</label>

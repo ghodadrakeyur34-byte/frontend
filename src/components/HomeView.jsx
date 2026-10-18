@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { animate, stagger } from 'animejs';
-import { Search, Building2, PlusCircle, MapPin, Home } from 'lucide-react';
+import { Search, Building2, PlusCircle, MapPin, Home, KeyRound } from 'lucide-react';
 import PropertyCard from './PropertyCard';
 import PropertyMap from './PropertyMap';
 
@@ -11,6 +11,7 @@ export default function HomeView({ listings, onSearch, userLocation, onRequestLo
   const [parent] = useAutoAnimate();
   const [location, setLocation] = useState('');
   const [type, setType] = useState('');
+  const [purpose, setPurpose] = useState('');
 
   useEffect(() => {
     // Anime.js v4 staggered entrance animation for Hero elements
@@ -54,7 +55,7 @@ export default function HomeView({ listings, onSearch, userLocation, onRequestLo
 
   const handleSearchSubmit = (e) => {
     if (e) e.preventDefault();
-    onSearch({ area: location, type });
+    onSearch({ area: location, type, purpose });
     window.location.hash = '#browse';
   };
 
@@ -73,6 +74,17 @@ export default function HomeView({ listings, onSearch, userLocation, onRequestLo
             {t('hero.findYourDream')} <span className="gradient-text">{t('hero.property')}</span>
           </h1>
           <form className="hero-search glass-card" id="heroSearch" onSubmit={handleSearchSubmit}>
+            <select
+              id="heroPurpose"
+              value={purpose}
+              onChange={(e) => setPurpose(e.target.value)}
+              aria-label="Property Purpose"
+            >
+              <option value="">{t('hero.allPurposes', 'All (Buy & Rent)')}</option>
+              <option value="sale">{t('hero.buy', 'Buy')}</option>
+              <option value="rent">{t('hero.rent', 'Rent')}</option>
+            </select>
+            <div className="divider"></div>
             <select
               id="heroLocation"
               value={location}
@@ -98,11 +110,32 @@ export default function HomeView({ listings, onSearch, userLocation, onRequestLo
             </button>
           </form>
           <div className="action-btns">
-            <button className="action-btn buy btn-shimmer" onClick={() => window.location.hash = '#browse'} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              <Search size={18} /> {t('hero.wantToBuy')}
+            <button
+              className="action-btn buy btn-shimmer"
+              onClick={() => {
+                onSearch({ purpose: 'sale' });
+                window.location.hash = '#browse';
+              }}
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+            >
+              <Search size={18} /> {t('hero.buy', 'Buy')}
             </button>
-            <button className="action-btn sell btn-shimmer" onClick={() => window.location.hash = '#sell'} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              <PlusCircle size={18} /> {t('hero.wantToSell')}
+            <button
+              className="action-btn sell btn-shimmer"
+              onClick={() => (window.location.hash = '#sell')}
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+            >
+              <PlusCircle size={18} /> {t('hero.sale', 'Sale')}
+            </button>
+            <button
+              className="action-btn rent btn-shimmer"
+              onClick={() => {
+                onSearch({ purpose: 'rent' });
+                window.location.hash = '#browse';
+              }}
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+            >
+              <KeyRound size={18} /> {t('hero.rent', 'Rent')}
             </button>
           </div>
         </div>

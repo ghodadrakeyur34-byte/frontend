@@ -47,9 +47,13 @@ export default function PropertyCard({ listing }) {
     >
       <div className="card-img">
         {imgElement}
-        <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
           {type === 'house' ? <Home size={12} /> : <Building2 size={12} />}
           {type === 'house' ? t('common.house') : t('common.plot')}
+          <span style={{ opacity: 0.6 }}>•</span>
+          <span style={{ color: listing.purpose === 'rent' ? '#34d399' : 'inherit', fontWeight: 600 }}>
+            {listing.purpose === 'rent' ? t('hero.rent', 'Rent') : t('hero.sale', 'Sale')}
+          </span>
         </span>
         {listing.status === 'pending' && (
           <span
@@ -122,7 +126,14 @@ export default function PropertyCard({ listing }) {
         )}
       </div>
       <div className="card-body">
-        <div className="price gradient-text">{formatPrice(price)}</div>
+        <div className="price gradient-text">
+          {formatPrice(price)}
+          {listing.purpose === 'rent' && (
+            <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text2)', marginLeft: '4px' }}>
+              / {t('common.month', 'mo')}
+            </span>
+          )}
+        </div>
         <div className="title">{title}</div>
         <div className="location" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <MapPin size={14} color="var(--accent)" /> {area}, {city}
