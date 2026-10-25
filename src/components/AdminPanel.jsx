@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ShieldCheck, LayoutDashboard, Building2, Users as UsersIcon, Flag, MessageSquare, FolderTree, PhoneCall, LogOut, Globe, CheckCircle2, Clock, Sparkles, Ban, X, PlusCircle, Pencil, Trash2, Eye, EyeOff } from 'lucide-react';
 import { apiFetch } from '../utils';
+import DescriptionTips from './DescriptionTips';
 
 const ADMIN_KEY = 'marimilkat_admin';
 
@@ -481,6 +482,15 @@ function Listings({ token, onUnauthorized }) {
               <div className="admin-field">
                 <label>Description</label>
                 <textarea rows={3} value={editForm.desc || ''} onChange={e => setEditForm({ ...editForm, desc: e.target.value })} />
+                <DescriptionTips
+                  initialOpen={false}
+                  onApplyTemplate={(tpl) =>
+                    setEditForm((prev) => ({
+                      ...prev,
+                      desc: prev.desc && prev.desc.trim() ? `${prev.desc}\n\n${tpl}` : tpl,
+                    }))
+                  }
+                />
               </div>
               <div className="admin-field-row">
                 <div className="admin-field">
@@ -568,6 +578,15 @@ function Listings({ token, onUnauthorized }) {
                   placeholder="Describe the property…"
                   value={addForm.desc}
                   onChange={e => setAddForm({ ...addForm, desc: e.target.value })}
+                />
+                <DescriptionTips
+                  initialOpen={false}
+                  onApplyTemplate={(tpl) =>
+                    setAddForm((prev) => ({
+                      ...prev,
+                      desc: prev.desc && prev.desc.trim() ? `${prev.desc}\n\n${tpl}` : tpl,
+                    }))
+                  }
                 />
               </div>
 

@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PlusCircle, Home, Building2, UploadCloud, CheckCircle2, Lock, LogIn, X, MapPin, KeyRound, Tag } from 'lucide-react';
+import { PlusCircle, Home, Building2, UploadCloud, CheckCircle2, Lock, LogIn, X, MapPin, KeyRound, Tag, Shield, PhoneCall, Phone, Eye, Star, RotateCw } from 'lucide-react';
 import { genId, saveCreatedListingId } from '../utils';
 import LocationPickerMap from './LocationPickerMap';
+import DescriptionTips from './DescriptionTips';
+import PhotoPreviewModal from './PhotoPreviewModal';
 
 export default function SellView({ onAddListing, currentUser, onRequireLogin, userLocation, onRequestLocation }) {
   const { t } = useTranslation();
@@ -17,6 +19,7 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
   const [city, setCity] = useState('');
   const [name, setName] = useState(currentUser?.name || '');
   const [phone, setPhone] = useState(currentUser?.phone || '');
+  const [contactPreference, setContactPreference] = useState('notify'); // 'notify' | 'direct'
   const [listingCoords, setListingCoords] = useState(null);
 
   // Load saved draft on mount if available
@@ -34,6 +37,7 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
         if (draft.unit) setUnit(draft.unit);
         if (draft.area) setArea(draft.area);
         if (draft.city) setCity(draft.city);
+        if (draft.contactPreference) setContactPreference(draft.contactPreference);
         if (draft.listingCoords) {
           setListingCoords(draft.listingCoords);
         }
@@ -58,6 +62,8 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
   const [showModal, setShowModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [createdId, setCreatedId] = useState(null);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [previewStartIndex, setPreviewStartIndex] = useState(0);
 
   const fileInputRef = useRef(null);
 
@@ -76,6 +82,7 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
         listingCoords,
         name: currentUser ? currentUser.name : name,
         phone: currentUser ? currentUser.phone : phone,
+        contactPreference,
         uploadedImages,
       }));
     } catch (e) {}
@@ -172,7 +179,55 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
   };
 
   const removeImg = (indexToRemove) => {
-    setUploadedImages((prev) => prev.filter((_, i) => i !== indexToRemove));
+    setUploadedImages((prev) => {
+      const next = prev.filter((_, i) => i !== indexToRemove);
+      try {
+        const savedDraft = sessionStorage.getItem('sell_form_draft');
+        if (savedDraft) {
+          const draft = JSON.parse(savedDraft);
+          draft.uploadedImages = next;
+          sessionStorage.setItem('sell_form_draft', JSON.stringify(draft));
+        }
+      } catch (e) {}
+      return next;
+    });
+  };
+
+  const handleOpenPhotoPreview = (index = 0) => {
+    setPreviewStartIndex(index);
+    setPreviewModalOpen(true);
+  };
+
+  const handleUpdateImages = (newImages) => {
+    setUploadedImages(newImages);
+    try {
+      const savedDraft = sessionStorage.getItem('sell_form_draft');
+      if (savedDraft) {
+        const draft = JSON.parse(savedDraft);
+        draft.uploadedImages = newImages;
+        sessionStorage.setItem('sell_form_draft', JSON.stringify(draft));
+      }
+    } catch (e) {}
+  };
+
+  const quickRotateImg = (e, index) => {
+    e.stopPropagation();
+    const src = uploadedImages[index];
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.height;
+      canvas.height = img.width;
+      const ctx = canvas.getContext('2d');
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate((90 * Math.PI) / 180);
+      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+      const rotated = canvas.toDataURL('image/jpeg', 0.8);
+      const updated = [...uploadedImages];
+      updated[index] = rotated;
+      handleUpdateImages(updated);
+    };
+    img.src = src;
   };
 
   const validate = () => {
@@ -235,6 +290,7 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
       ownerId: currentUser?.email || currentUser?.phone || 'user',
       ownerEmail: currentUser?.email || '',
       ownerPhone: currentUser?.phone || phone.trim() || '',
+      contact_preference: contactPreference,
       status: 'active',
     };
 
@@ -360,6 +416,11 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
               ></textarea>
+              <DescriptionTips
+                onApplyTemplate={(tpl) =>
+                  setDesc((prev) => (prev && prev.trim() ? `${prev}\n\n${tpl}` : tpl))
+                }
+              />
             </div>
 
             {/* Price & Size */}
@@ -443,20 +504,39 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
 
             {/* Photos */}
             <div className="form-group">
-              <label>{t('sell.photos')}</label>
-              <div
-                className={`upload-zone ${isDragOver ? 'dragover' : ''}`}
-                id="uploadZone"
-                onClick={triggerFileInput}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-              >
-                <div className="icon" style={{ display: 'flex', justifyContent: 'center' }}>
-                  <UploadCloud size={40} color="var(--accent)" />
-                </div>
-                <p>{t('sell.dragDrop')} <span>{t('sell.clickBrowse')}</span></p>
+              <div className="photos-label-row">
+                <label style={{ margin: 0 }}>{t('sell.photos')}</label>
+                {uploadedImages.length > 0 && (
+                  <button
+                    type="button"
+                    id="btnPreviewUploadedPhotos"
+                    className="btn-preview-photos-header"
+                    onClick={() => handleOpenPhotoPreview(0)}
+                    title={t('sell.previewPhotosDesc', 'Verify how photos look on buyer cards, rotate, crop, or reorder')}
+                  >
+                    <Eye size={15} />
+                    <span>{t('sell.previewPhotos', 'Preview & Adjust Photos')}</span>
+                    <span className="photos-count-chip">{uploadedImages.length}/5</span>
+                  </button>
+                )}
               </div>
+
+              {uploadedImages.length < 5 && (
+                <div
+                  className={`upload-zone ${isDragOver ? 'dragover' : ''}`}
+                  id="uploadZone"
+                  onClick={triggerFileInput}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
+                  <div className="icon" style={{ display: 'flex', justifyContent: 'center' }}>
+                    <UploadCloud size={40} color="var(--accent)" />
+                  </div>
+                  <p>{t('sell.dragDrop')} <span>{t('sell.clickBrowse')}</span></p>
+                </div>
+              )}
+
               <input
                 type="file"
                 id="fileInput"
@@ -466,23 +546,89 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
                 style={{ display: 'none' }}
                 onChange={handleFileChange}
               />
-              <div className="preview-grid" id="previewGrid">
-                {uploadedImages.map((src, idx) => (
-                  <div key={idx} className="preview-item">
-                    <img src={src} alt={`Preview ${idx + 1}`} />
+
+              {uploadedImages.length > 0 && (
+                <div className="preview-grid" id="previewGrid">
+                  {uploadedImages.map((src, idx) => (
+                    <div
+                      key={idx}
+                      className={`preview-item ${idx === 0 ? 'is-cover-item' : ''}`}
+                      onClick={() => handleOpenPhotoPreview(idx)}
+                      title="Click to preview & adjust"
+                    >
+                      <img src={src} alt={`Preview ${idx + 1}`} />
+
+                      {idx === 0 && (
+                        <span className="cover-tag">
+                          <Star size={10} fill="currentColor" /> {t('sell.coverBadge', 'Cover')}
+                        </span>
+                      )}
+
+                      <div className="preview-item-overlay">
+                        <button
+                          type="button"
+                          className="preview-item-action-btn view"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenPhotoPreview(idx);
+                          }}
+                          title={t('sell.previewPhoto', 'Preview & Adjust')}
+                        >
+                          <Eye size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          className="preview-item-action-btn rotate"
+                          onClick={(e) => quickRotateImg(e, idx)}
+                          title={t('sell.quickRotate', 'Rotate 90°')}
+                        >
+                          <RotateCw size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          className="remove-img"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeImg(idx);
+                          }}
+                          title="Remove photo"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {uploadedImages.length < 5 && (
                     <button
                       type="button"
-                      className="remove-img"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeImg(idx);
-                      }}
+                      className="add-more-photos-btn"
+                      onClick={triggerFileInput}
+                      title="Add more photos"
                     >
-                      ×
+                      <PlusCircle size={22} />
+                      <span>+ Add</span>
                     </button>
+                  )}
+                </div>
+              )}
+
+              {uploadedImages.length > 0 && (
+                <div className="photos-preview-action-banner">
+                  <div className="banner-left">
+                    <Eye size={16} color="var(--accent)" />
+                    <span>{t('sell.previewPhotosDesc', 'Verify how photos look on buyer cards, rotate, crop, or reorder')}</span>
                   </div>
-                ))}
-              </div>
+                  <button
+                    type="button"
+                    className="btn-preview-photos-banner"
+                    onClick={() => handleOpenPhotoPreview(0)}
+                  >
+                    <Eye size={14} />
+                    <span>{t('sell.previewPhotos', 'Preview & Adjust Photos')} →</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Contact */}
@@ -508,6 +654,87 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
                   onChange={(e) => setPhone(e.target.value)}
                 />
                 <div className="error-msg">{t('sell.phoneError')}</div>
+              </div>
+            </div>
+
+            {/* Contact Privacy Mode */}
+            <div className="form-group contact-privacy-selector" style={{ marginTop: '1.25rem', marginBottom: '1.5rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--text)' }}>
+                <Shield size={18} color="var(--accent)" />
+                {t('sell.contactPrivacyTitle', 'Contact Privacy & Buyer Inquiries')}
+              </label>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
+                {/* Option B: Request Callback (Privacy First, Default) */}
+                <div
+                  onClick={() => setContactPreference('notify')}
+                  style={{
+                    padding: '1rem 1.15rem',
+                    borderRadius: 'var(--r-md, 10px)',
+                    border: `1.5px solid ${contactPreference === 'notify' ? 'var(--accent, #e2b857)' : 'var(--border, #334155)'}`,
+                    background: contactPreference === 'notify' ? 'rgba(226, 184, 87, 0.08)' : 'var(--surface, #1e293b)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '0.92rem', color: contactPreference === 'notify' ? 'var(--accent, #e2b857)' : 'var(--text, #f8fafc)' }}>
+                      <PhoneCall size={16} />
+                      {t('sell.requestCallbackOption', 'Request Callback (Private)')}
+                    </div>
+                    <input
+                      type="radio"
+                      name="contactPreference"
+                      value="notify"
+                      checked={contactPreference === 'notify'}
+                      onChange={() => setContactPreference('notify')}
+                      style={{ accentColor: 'var(--accent, #e2b857)' }}
+                    />
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text2, #94a3b8)', lineHeight: '1.4' }}>
+                    {t('sell.requestCallbackDesc', 'Keep your number hidden from scrapers. Serious buyers send their verified mobile number for you to call them.')}
+                  </p>
+                  <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                    ✓ Recommended to prevent spam
+                  </span>
+                </div>
+
+                {/* Option A: Direct Contact */}
+                <div
+                  onClick={() => setContactPreference('direct')}
+                  style={{
+                    padding: '1rem 1.15rem',
+                    borderRadius: 'var(--r-md, 10px)',
+                    border: `1.5px solid ${contactPreference === 'direct' ? 'var(--accent, #e2b857)' : 'var(--border, #334155)'}`,
+                    background: contactPreference === 'direct' ? 'rgba(226, 184, 87, 0.08)' : 'var(--surface, #1e293b)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '0.92rem', color: contactPreference === 'direct' ? 'var(--accent, #e2b857)' : 'var(--text, #f8fafc)' }}>
+                      <Phone size={16} />
+                      {t('sell.directContactOption', 'Direct Contact')}
+                    </div>
+                    <input
+                      type="radio"
+                      name="contactPreference"
+                      value="direct"
+                      checked={contactPreference === 'direct'}
+                      onChange={() => setContactPreference('direct')}
+                      style={{ accentColor: 'var(--accent, #e2b857)' }}
+                    />
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text2, #94a3b8)', lineHeight: '1.4' }}>
+                    {t('sell.directContactDesc', 'Allow verified, logged-in buyers to click "Show Number" to reveal and call your phone number directly.')}
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -616,6 +843,25 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
           <button className="btn-submit" onClick={handleCloseModal}>{t('sell.viewListing')}</button>
         </div>
       </div>
+
+      {/* PHOTO PREVIEW & ADJUST MODAL */}
+      <PhotoPreviewModal
+        isOpen={previewModalOpen}
+        onClose={() => setPreviewModalOpen(false)}
+        images={uploadedImages}
+        initialIndex={previewStartIndex}
+        listingInfo={{
+          purpose,
+          propType,
+          title,
+          price,
+          size,
+          unit,
+          area,
+          city,
+        }}
+        onUpdateImages={handleUpdateImages}
+      />
     </main>
   );
 }

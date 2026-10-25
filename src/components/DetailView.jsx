@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Frown, Pencil, AlertTriangle, CheckCircle2, MapPin, Home, Building2, Phone, Eye, Lock, Share2, Clock, Trash2, Tag } from 'lucide-react';
-import { formatPrice, timeAgo, canChangePrice, getRemainingPriceChanges, isListingOwner } from '../utils';
+import { ArrowLeft, Frown, Pencil, AlertTriangle, CheckCircle2, MapPin, Home, Building2, Phone, Eye, Lock, Share2, Clock, Trash2, Tag, PhoneCall, Shield, Loader2, AlertCircle } from 'lucide-react';
+import { formatPrice, timeAgo, canChangePrice, getRemainingPriceChanges, isListingOwner, apiFetch } from '../utils';
 import PropertyCard from './PropertyCard';
 import PropertyMap from './PropertyMap';
 import ReportButton from './ReportButton';
+import PhoneVerificationModal from './PhoneVerificationModal';
 
 export default function DetailView({ id, listings, onUpdatePrice, onDeleteListing, onEditListing, currentUser, onRequireLogin, userLocation }) {
   const { t } = useTranslation();
@@ -16,15 +17,53 @@ export default function DetailView({ id, listings, onUpdatePrice, onDeleteListin
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Seller Privacy & Lead Dispatch states
+  const [detailData, setDetailData] = useState(null);
+  const [revealedPhone, setRevealedPhone] = useState(null);
+  const [isRevealingPhone, setIsRevealingPhone] = useState(false);
+  const [phoneRevealError, setPhoneRevealError] = useState(null);
+  const [hasRequestedCallback, setHasRequestedCallback] = useState(false);
+  const [isRequestingCallback, setIsRequestingCallback] = useState(false);
+  const [callbackSuccess, setCallbackSuccess] = useState(false);
+  const [callbackError, setCallbackError] = useState(null);
+  const [showPhoneVerifyModal, setShowPhoneVerifyModal] = useState(false);
+
+  // Fetch single listing details on mount to get callback status and sanitize contact info
+  useEffect(() => {
+    let isMounted = true;
+    async function loadFreshListing() {
+      try {
+        const res = await apiFetch(`/api/listings/${id}`);
+        if (res.ok && isMounted) {
+          const data = await res.json();
+          setDetailData(data);
+          if (data.hasRequestedCallback) {
+            setHasRequestedCallback(true);
+          }
+          if (data.contact?.phone) {
+            setRevealedPhone(data.contact.phone);
+          }
+        }
+      } catch (e) {}
+    }
+    loadFreshListing();
+    return () => { isMounted = false; };
+  }, [id, currentUser]);
+
   // Reset active image index and close price editor when viewing a new property
   useEffect(() => {
     setActiveIdx(0);
     setIsEditingPrice(false);
     setPriceMessage(null);
     setShowNumber(false);
+    setRevealedPhone(null);
+    setPhoneRevealError(null);
+    setCallbackSuccess(false);
+    setCallbackError(null);
   }, [id]);
 
-  const listing = listings.find((l) => String(l.id) === String(id));
+  const baseListing = listings.find((l) => String(l.id) === String(id));
+  const listing = detailData || baseListing;
 
   const isOwner = isListingOwner(listing, currentUser);
   const isAdmin = currentUser?.role === 'admin' || currentUser?.isAdmin;
@@ -115,13 +154,75 @@ export default function DetailView({ id, listings, onUpdatePrice, onDeleteListin
     }
   };
 
-  const handleRevealNumber = () => {
+  const handleRevealDirectNumber = async () => {
     if (!isLoggedIn) {
       onRequireLogin();
       return;
     }
-    setShowNumber(true);
+    setIsRevealingPhone(true);
+    setPhoneRevealError(null);
+    try {
+      const res = await apiFetch(`/api/listings/${id}/contact`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to reveal contact number.');
+      }
+      setRevealedPhone(data.phone || contact?.phone);
+      setShowNumber(true);
+    } catch (err) {
+      setPhoneRevealError(err.message);
+    } finally {
+      setIsRevealingPhone(false);
+    }
   };
+
+  const submitCallbackRequest = async () => {
+    setIsRequestingCallback(true);
+    setCallbackError(null);
+    try {
+      const res = await apiFetch(`/api/listings/${id}/request-callback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (data.code === 'PHONE_VERIFICATION_REQUIRED') {
+          setShowPhoneVerifyModal(true);
+          return;
+        }
+        throw new Error(data.error || 'Failed to request callback.');
+      }
+      setHasRequestedCallback(true);
+      setCallbackSuccess(true);
+      setTimeout(() => setCallbackSuccess(false), 5000);
+    } catch (err) {
+      setCallbackError(err.message);
+    } finally {
+      setIsRequestingCallback(false);
+    }
+  };
+
+  const handleRequestCallbackClick = () => {
+    if (!isLoggedIn) {
+      onRequireLogin();
+      return;
+    }
+    const isPhoneVerified = Boolean(
+      currentUser.is_phone_verified ||
+      currentUser.isPhoneVerified ||
+      currentUser.verified?.phone
+    );
+    if (!isPhoneVerified) {
+      setShowPhoneVerifyModal(true);
+      return;
+    }
+    submitCallbackRequest();
+  };
+
+  const contactPref = listing?.contact_preference || 'notify';
 
   // Mask phone: show first 4 chars + asterisks
   const getMaskedPhone = (phone) => {
@@ -377,31 +478,199 @@ export default function DetailView({ id, listings, onUpdatePrice, onDeleteListin
               </div>
             </div>
 
-            {/* ===== GATED CONTACT NUMBER ===== */}
-            {isLoggedIn && showNumber ? (
-              /* Fully revealed — logged in user clicked "Show Number" */
-              <a href={`tel:${contact?.phone || ''}`} className="btn-call" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                <Phone size={18} /> {t('detail.call', { phone: contact?.phone || 'N/A' })}
-              </a>
-            ) : isLoggedIn && !showNumber ? (
-              /* Logged in but hasn't clicked reveal yet */
-              <button className="btn-reveal-number" onClick={handleRevealNumber} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                <Eye size={18} />
-                <span>{t('detail.showContact')}</span>
-                <span className="phone-masked">{getMaskedPhone(contact?.phone)}</span>
-              </button>
-            ) : (
-              /* Not logged in — locked state */
-              <div className="contact-locked">
-                <div className="locked-phone-preview" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                  <Lock size={16} color="var(--text3)" />
-                  <span className="phone-blurred">{getMaskedPhone(contact.phone)}</span>
+            {/* ===== DUAL-MODE SELLER CONTACT SECTION ===== */}
+            {isOwner ? (
+              <div
+                style={{
+                  background: 'rgba(226, 184, 87, 0.1)',
+                  border: '1px solid rgba(226, 184, 87, 0.3)',
+                  borderRadius: 'var(--r-md, 8px)',
+                  padding: '0.85rem 1rem',
+                  marginBottom: '1rem',
+                  fontSize: '0.85rem',
+                  color: 'var(--text)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: 'var(--accent)', marginBottom: '4px' }}>
+                  <Shield size={16} /> {t('detail.ownerListingBadge', 'Your Property Listing')}
                 </div>
-                <button className="btn-login-to-view" onClick={onRequireLogin} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                  <Lock size={16} />
-                  {t('detail.loginToView')}
-                </button>
-                <p className="locked-hint">{t('detail.loginHint')}</p>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text2)' }}>
+                  Contact Mode: <strong>{contactPref === 'direct' ? 'Direct Contact' : 'Request Callback (Private)'}</strong>
+                </div>
+                {contact?.phone && (
+                  <div style={{ marginTop: '6px', fontWeight: 600, color: 'var(--text)' }}>
+                    Phone: {contact.phone}
+                  </div>
+                )}
+              </div>
+            ) : contactPref === 'notify' ? (
+              /* ===== MODE B: NOTIFY / REQUEST CALLBACK (PRIVATE) ===== */
+              <div className="contact-notify-mode" style={{ marginBottom: '1rem' }}>
+                {hasRequestedCallback ? (
+                  <button
+                    className="btn-callback-requested"
+                    disabled
+                    style={{
+                      width: '100%',
+                      padding: '0.85rem 1rem',
+                      borderRadius: 'var(--r-md, 8px)',
+                      background: 'rgba(16, 185, 129, 0.15)',
+                      color: '#34d399',
+                      border: '1.5px solid rgba(16, 185, 129, 0.4)',
+                      fontWeight: 700,
+                      fontSize: '0.92rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      cursor: 'default',
+                    }}
+                  >
+                    <CheckCircle2 size={18} />
+                    <span>{t('detail.callbackRequested', '✓ Callback Requested')}</span>
+                  </button>
+                ) : (
+                  <button
+                    className="btn-request-callback"
+                    onClick={handleRequestCallbackClick}
+                    disabled={isRequestingCallback}
+                    style={{
+                      width: '100%',
+                      padding: '0.85rem 1rem',
+                      borderRadius: 'var(--r-md, 8px)',
+                      background: 'var(--accent, #e2b857)',
+                      color: '#0f172a',
+                      fontWeight: 700,
+                      fontSize: '0.95rem',
+                      border: 'none',
+                      cursor: isRequestingCallback ? 'wait' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 14px rgba(226, 184, 87, 0.3)',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    {isRequestingCallback ? (
+                      <Loader2 size={18} className="spin" />
+                    ) : (
+                      <PhoneCall size={18} />
+                    )}
+                    <span>{t('detail.requestCallback', 'Request Callback')}</span>
+                  </button>
+                )}
+
+                {callbackSuccess && (
+                  <div style={{ marginTop: '8px', color: '#34d399', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <CheckCircle2 size={15} /> Lead sent to seller! They will call you back.
+                  </div>
+                )}
+
+                {callbackError && (
+                  <div style={{ marginTop: '8px', color: '#f87171', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <AlertCircle size={15} /> {callbackError}
+                  </div>
+                )}
+
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    marginTop: '10px',
+                    padding: '8px 10px',
+                    borderRadius: '6px',
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    border: '1px solid var(--border)',
+                    fontSize: '0.78rem',
+                    color: 'var(--text3, #94a3b8)',
+                  }}
+                >
+                  <Shield size={14} color="var(--accent)" style={{ flexShrink: 0 }} />
+                  <span>
+                    {hasRequestedCallback
+                      ? t('detail.callbackDispatchedHint', 'The seller has received your verified number and will contact you directly.')
+                      : t('detail.privacyProtectedHint', 'Seller number is protected from spam. Your verified mobile number is sent securely.')}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              /* ===== MODE A: DIRECT CONTACT (PHONE REVEAL) ===== */
+              <div className="contact-direct-mode" style={{ marginBottom: '1rem' }}>
+                {isLoggedIn && showNumber && revealedPhone ? (
+                  /* Fully revealed */
+                  <a
+                    href={`tel:${revealedPhone}`}
+                    className="btn-call"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      width: '100%',
+                      padding: '0.85rem 1rem',
+                      borderRadius: 'var(--r-md, 8px)',
+                      background: '#10b981',
+                      color: '#ffffff',
+                      textDecoration: 'none',
+                      fontWeight: 700,
+                      fontSize: '0.95rem',
+                      boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)',
+                    }}
+                  >
+                    <Phone size={18} /> {t('detail.call', { phone: revealedPhone })}
+                  </a>
+                ) : isLoggedIn && !showNumber ? (
+                  /* Logged in, ready to reveal */
+                  <>
+                    <button
+                      className="btn-reveal-number"
+                      onClick={handleRevealDirectNumber}
+                      disabled={isRevealingPhone}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        width: '100%',
+                        padding: '0.85rem 1rem',
+                        borderRadius: 'var(--r-md, 8px)',
+                        background: 'var(--accent, #e2b857)',
+                        color: '#0f172a',
+                        fontWeight: 700,
+                        fontSize: '0.92rem',
+                        border: 'none',
+                        cursor: isRevealingPhone ? 'wait' : 'pointer',
+                      }}
+                    >
+                      {isRevealingPhone ? <Loader2 size={18} className="spin" /> : <Eye size={18} />}
+                      <span>{t('detail.showContact', 'Show Contact Number')}</span>
+                    </button>
+                    {phoneRevealError && (
+                      <div style={{ marginTop: '8px', color: '#f87171', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <AlertCircle size={15} /> {phoneRevealError}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  /* Not logged in */
+                  <div className="contact-locked">
+                    <div className="locked-phone-preview" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                      <Lock size={16} color="var(--text3)" />
+                      <span className="phone-blurred">••••-•••••••</span>
+                    </div>
+                    <button
+                      className="btn-login-to-view"
+                      onClick={onRequireLogin}
+                      style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%' }}
+                    >
+                      <Lock size={16} />
+                      {t('detail.loginToView')}
+                    </button>
+                    <p className="locked-hint">{t('detail.loginHint')}</p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -517,6 +786,25 @@ export default function DetailView({ id, listings, onUpdatePrice, onDeleteListin
           </div>
         </div>
       )}
+
+      {/* Inline Phone Verification Modal for Unverified Buyers */}
+      <PhoneVerificationModal
+        isOpen={showPhoneVerifyModal}
+        onClose={() => setShowPhoneVerifyModal(false)}
+        currentUser={currentUser}
+        onVerified={(updatedUser) => {
+          setShowPhoneVerifyModal(false);
+          if (currentUser) {
+            currentUser.is_phone_verified = true;
+            currentUser.phone = updatedUser.phone || currentUser.phone;
+            if (currentUser.verified) currentUser.verified.phone = true;
+            try {
+              localStorage.setItem('propbazaar_user', JSON.stringify(currentUser));
+            } catch (e) {}
+          }
+          submitCallbackRequest();
+        }}
+      />
     </main>
   );
 }
