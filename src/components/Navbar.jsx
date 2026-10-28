@@ -121,7 +121,17 @@ export default function Navbar({ currentHash, currentUser, onLogout, onShowLogin
               <div className="user-dropdown">
                 <div className="user-dropdown-header">
                   <strong>{currentUser.name}</strong>
-                  <span>{currentUser.email}</span>
+                  {currentUser.email && <span>{currentUser.email}</span>}
+                  {currentUser.phone && (
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text2)', display: 'block', marginTop: '2px' }}>
+                      📱 {currentUser.phone}
+                    </span>
+                  )}
+                  {(currentUser.is_phone_verified || currentUser.verified?.phone) ? (
+                    <span className="phone-verified-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#10b981', fontSize: '0.75rem', marginTop: '4px' }}>
+                      ✓ {t('login.phoneVerified', 'Phone Verified')}
+                    </span>
+                  ) : null}
                   {currentUser.verified?.google && (
                     <span className="google-badge">
                       ✓ {t('login.googleVerified', 'Verified with Google')}
