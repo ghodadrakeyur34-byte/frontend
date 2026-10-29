@@ -9,6 +9,8 @@ import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 
 import EditListingModal from './components/EditListingModal';
+import InstallAppBanner from './components/InstallAppBanner';
+import NotificationPromptModal from './components/NotificationPromptModal';
 
 // Lazy load route components for minimal initial bundle size and instant FCP
 const BrowseView = lazy(() => import('./components/BrowseView'));
@@ -674,6 +676,12 @@ export default function App() {
         onRequestLocation={handleRequestLocation}
         locationStatus={locationStatus}
       />
+
+      {/* PWA Cross-Device Install Banner */}
+      <InstallAppBanner />
+
+      {/* Web Push Notification Prompt & Manager */}
+      <NotificationPromptModal currentUser={currentUser} />
     </div>
   );
 }

@@ -103,7 +103,9 @@ export async function sendFirebasePhoneOtp(rawPhoneNumber, verifier) {
     };
   } catch (err) {
     console.error('[Firebase Auth] signInWithPhoneNumber error:', err);
-    throw new Error(getFirebaseErrorMessage(err));
+    const friendlyError = new Error(getFirebaseErrorMessage(err));
+    friendlyError.code = err.code;
+    throw friendlyError;
   }
 }
 
@@ -114,6 +116,10 @@ export function getFirebaseErrorMessage(error) {
   if (!error) return 'An unexpected error occurred.';
   const code = error.code || '';
   const message = error.message || '';
+
+  if (code === 'auth/billing-not-enabled' || message.includes('auth/billing-not-enabled') || message.includes('billing-not-enabled')) {
+    return 'Phone authentication requires a Firebase Blaze (Pay-as-you-go) plan to send real SMS. To test for free, add your number in Firebase Console → Authentication → Sign-in method → Phone → Phone numbers for testing.';
+  }
 
   switch (code) {
     case 'auth/invalid-phone-number':
@@ -134,6 +140,11 @@ export function getFirebaseErrorMessage(error) {
       return 'Network error. Please check your internet connection.';
     case 'auth/app-not-authorized':
       return 'Firebase domain not authorized. Please make sure the domain is added in Firebase Console.';
+    case 'auth/operation-not-allowed':
+      if (message.toLowerCase().includes('region')) {
+        return 'SMS for this country/region (+91) is restricted. Please enable India in Firebase Console → Authentication → Settings → SMS Region Policy, or add your test number in Phone provider settings.';
+      }
+      return 'Phone authentication is disabled. Please enable "Phone" under Firebase Console → Authentication → Sign-in method.';
     default:
       return message || 'Phone verification failed. Please try again.';
   }

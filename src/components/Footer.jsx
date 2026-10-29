@@ -17,6 +17,23 @@ export default function Footer({ currentUser }) {
         <a onClick={() => handleNavClick('#help')} style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
           <Headphones size={15} /> {t('nav.helpDesk', 'Help Desk')}
         </a>
+        <a
+          onClick={() => {
+            if (window._mariMilkatInstallPrompt) {
+              window._mariMilkatInstallPrompt.prompt();
+            } else {
+              const isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+              if (isIOS) {
+                alert("To install on iOS (iPhone/iPad): Tap the Share button at the bottom of Safari, then tap 'Add to Home Screen'.");
+              } else {
+                alert("To install on Android, Windows or Mac: Click your browser's menu (⋮) and select 'Install Mari Milkat' or 'Add to Home screen'.");
+              }
+            }
+          }}
+          style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+        >
+          📲 Install App
+        </a>
         <a onClick={() => handleNavClick('#admin')} style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
           🔐 Admin Panel
         </a>

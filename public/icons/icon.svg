@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#090d16" />
+    </radialGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  <circle cx="256" cy="256" r="230" fill="none" stroke="url(#goldGrad)" stroke-width="6" opacity="0.4" />
+  
+  <!-- House Icon -->
+  <g transform="translate(106, 116) scale(1.2)">
+    <!-- Roof -->
+    <polygon points="125,20 220,110 30,110" fill="url(#goldGrad)" />
+    <!-- Chimney -->
+    <rect x="180" y="45" width="22" height="40" fill="url(#goldGrad)" rx="3" />
+    <!-- Building Body -->
+    <rect x="52" y="105" width="146" height="115" fill="url(#goldGrad)" rx="6" />
+    <!-- Door -->
+    <rect x="105" y="145" width="40" height="75" fill="#090d16" rx="4" />
+    <!-- Window Left -->
+    <rect x="68" y="125" width="26" height="26" fill="#090d16" rx="3" />
+    <!-- Window Right -->
+    <rect x="156" y="125" width="26" height="26" fill="#090d16" rx="3" />
+  </g>
+</svg>
+

@@ -374,9 +374,9 @@ function Listings({ token, onUnauthorized }) {
   ];
 
   const formatPrice = (n) => {
-    if (n >= 10000000) return '₨ ' + (n / 10000000).toFixed(2) + ' Cr';
-    if (n >= 100000) return '₨ ' + (n / 100000).toFixed(2) + ' Lac';
-    return '₨ ' + n.toLocaleString();
+    if (n >= 10000000) return '₹ ' + (n / 10000000).toFixed(2) + ' Cr';
+    if (n >= 100000) return '₹ ' + (n / 100000).toFixed(2) + ' Lac';
+    return '₹ ' + n.toLocaleString('en-IN');
   };
 
   return (
@@ -494,7 +494,7 @@ function Listings({ token, onUnauthorized }) {
               </div>
               <div className="admin-field-row">
                 <div className="admin-field">
-                  <label>Price (₨)</label>
+                  <label>Price (₹)</label>
                   <input type="number" value={editForm.price || ''} onChange={e => setEditForm({ ...editForm, price: Number(e.target.value) })} />
                 </div>
                 <div className="admin-field">
@@ -593,7 +593,7 @@ function Listings({ token, onUnauthorized }) {
               {/* Price & Size */}
               <div className="admin-field-row">
                 <div className={`admin-field ${addErrors.price ? 'has-error' : ''}`}>
-                  <label>Price (₨) *</label>
+                  <label>Price (₹) *</label>
                   <input
                     type="number"
                     placeholder="e.g. 5000000"

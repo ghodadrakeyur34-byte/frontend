@@ -325,7 +325,7 @@ export default function PhotoPreviewModal({
 
   // Listing mockup values
   const mockupTitle = listingInfo.title?.trim() || t('sell.titlePlaceholder', 'Modern Dream Home with Garden');
-  const mockupPrice = listingInfo.price ? formatPrice(parseFloat(listingInfo.price)) : '₨ 45.00 Lac';
+  const mockupPrice = listingInfo.price ? formatPrice(parseFloat(listingInfo.price)) : '₹ 45.00 Lac';
   const mockupPurpose = listingInfo.purpose || 'sale';
   const mockupType = listingInfo.propType || 'house';
   const mockupLocation = [listingInfo.area, listingInfo.city].filter(Boolean).join(', ') || 'Main Road, Veraval';

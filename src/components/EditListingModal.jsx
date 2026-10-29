@@ -490,7 +490,7 @@ export default function EditListingModal({
                 <input
                   type="number"
                   id="editPropPrice"
-                  placeholder={t('sell.pricePlaceholder', 'e.g. 4500000')}
+                  placeholder={t('sell.pricePlaceholder', 'e.g. 4500000 (in ₹)')}
                   value={price}
                   onChange={(e) => {
                     setPrice(e.target.value);
@@ -500,6 +500,11 @@ export default function EditListingModal({
                   }}
                   min="1"
                 />
+                {price && !isNaN(price) && Number(price) > 0 && (
+                  <div style={{ fontSize: '0.85rem', color: 'var(--accent)', marginTop: '4px', fontWeight: 600 }}>
+                    {formatPrice(Number(price))}
+                  </div>
+                )}
                 {errors.price && <div className="error-msg">{t('sell.priceError', 'Please enter a valid price')}</div>}
                 {errors.priceLimit && (
                   <div className="error-msg">

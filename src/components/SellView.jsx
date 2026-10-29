@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PlusCircle, Home, Building2, UploadCloud, CheckCircle2, Lock, LogIn, X, MapPin, KeyRound, Tag, Shield, PhoneCall, Phone, Eye, Star, RotateCw } from 'lucide-react';
-import { genId, saveCreatedListingId } from '../utils';
+import { genId, saveCreatedListingId, formatPrice } from '../utils';
 import LocationPickerMap from './LocationPickerMap';
 import DescriptionTips from './DescriptionTips';
 import PhotoPreviewModal from './PhotoPreviewModal';
@@ -435,6 +435,11 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
                   onChange={(e) => setPrice(e.target.value)}
                   min="1"
                 />
+                {price && !isNaN(price) && Number(price) > 0 && (
+                  <div style={{ fontSize: '0.85rem', color: 'var(--accent)', marginTop: '4px', fontWeight: 600 }}>
+                    {formatPrice(Number(price))}
+                  </div>
+                )}
                 <div className="error-msg">{t('sell.priceError')}</div>
               </div>
               <div className={`form-group ${errors.size ? 'has-error' : ''}`}>

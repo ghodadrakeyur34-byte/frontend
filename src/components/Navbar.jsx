@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Home, Building2, PlusCircle, ShieldCheck, LogOut, User } from 'lucide-react';
+import NotificationBell from './NotificationBell';
 
 export default function Navbar({ currentHash, currentUser, onLogout, onShowLogin, onRequestLocation, userLocation }) {
   const { t, i18n } = useTranslation();
@@ -86,8 +87,9 @@ export default function Navbar({ currentHash, currentUser, onLogout, onShowLogin
         )}
       </ul>
 
-      {/* Right-side: language toggle + user indicator */}
+      {/* Right-side: notification bell + language toggle + user indicator */}
       <div className="nav-right">
+        <NotificationBell currentUser={currentUser} />
         <button className="lang-toggle" onClick={toggleLanguage} title="Switch language">
           {i18n.language === 'en' ? t('lang.gu') : t('lang.en')}
         </button>

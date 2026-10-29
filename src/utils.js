@@ -1,7 +1,7 @@
 export function formatPrice(n) {
-  if (n >= 10000000) return '₨ ' + (n / 10000000).toFixed(2) + ' Crore';
-  if (n >= 100000) return '₨ ' + (n / 100000).toFixed(2) + ' Lac';
-  return '₨ ' + n.toLocaleString('en-PK');
+  if (n >= 10000000) return '₹ ' + (n / 10000000).toFixed(2) + ' Crore';
+  if (n >= 100000) return '₹ ' + (n / 100000).toFixed(2) + ' Lac';
+  return '₹ ' + n.toLocaleString('en-IN');
 }
 
 export function timeAgo(dateStr) {
