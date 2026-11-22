@@ -125,7 +125,7 @@ export default function HomeView({ listings, onSearch, userLocation, onRequestLo
               onClick={() => (window.location.hash = '#sell')}
               style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
             >
-              <PlusCircle size={18} /> {t('hero.sale', 'Sale')}
+              <PlusCircle size={18} /> {t('hero.sell', 'Sell')}
             </button>
             <button
               className="action-btn rent btn-shimmer"

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   X,
+  ArrowLeft,
   RotateCw,
   RotateCcw,
   FlipHorizontal,
@@ -352,6 +353,18 @@ export default function PhotoPreviewModal({
       <div className="photo-preview-modal glass-card" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="photo-modal-header">
+          {/* Mobile Back / Exit Button */}
+          <button
+            type="button"
+            className="photo-modal-back-btn"
+            onClick={onClose}
+            aria-label={t('photoAdjust.back', 'Back')}
+            disabled={isSaving}
+          >
+            <ArrowLeft size={18} />
+            <span>{t('photoAdjust.back', 'Back')}</span>
+          </button>
+
           <div className="header-left">
             <div className="badge-row">
               <span className="photo-counter-badge">
@@ -838,9 +851,20 @@ export default function PhotoPreviewModal({
         {/* Thumbnail Selector Strip */}
         <div className="photo-modal-footer">
           <div className="thumb-strip-header">
-            <span>
-              {t('photoAdjust.photoCounter', { current: activeIdx + 1, total: images.length })}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                type="button"
+                className="btn-footer-exit-mobile"
+                onClick={onClose}
+                disabled={isSaving}
+              >
+                <ArrowLeft size={14} />
+                <span>{t('photoAdjust.close', 'Exit Preview')}</span>
+              </button>
+              <span>
+                {t('photoAdjust.photoCounter', { current: activeIdx + 1, total: images.length })}
+              </span>
+            </div>
             <span className="thumb-tip">
               💡 {isCover ? '🌟 This cover photo is the main image on search cards' : 'Select any thumbnail to view & adjust'}
             </span>

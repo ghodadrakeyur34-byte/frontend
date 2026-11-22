@@ -15,7 +15,8 @@
     "allPurposes": "બધા (ખરીદો અને ભાડે)",
     "search": "શોધો",
     "buy": "ખરીદો",
-    "sale": "વેચો",
+    "sell": "વેચો",
+    "sale": "વેચાણ માટે",
     "rent": "ભાડે",
     "wantToBuy": "ખરીદો",
     "wantToSell": "વેચો",
@@ -147,6 +148,7 @@
     "moveEarlier": "પહેલા લાવો",
     "moveLater": "પછી લાવો",
     "close": "બંધ કરો",
+    "back": "પાછા",
     "photoCounter": "ફોટો {{current}} / {{total}}"
   },
   "detail": {

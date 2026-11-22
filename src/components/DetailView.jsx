@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Frown, Pencil, AlertTriangle, CheckCircle2, MapPin, Home, Building2, Phone, Eye, Lock, Share2, Clock, Trash2, Tag, PhoneCall, Shield, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Frown, Pencil, AlertTriangle, CheckCircle2, MapPin, Home, Building2, Phone, Eye, Lock, Share2, Clock, Trash2, Tag, PhoneCall, Shield, Loader2, AlertCircle, Bed, Sofa, CookingPot, Sun, Bath } from 'lucide-react';
 import { formatPrice, timeAgo, canChangePrice, getRemainingPriceChanges, isListingOwner, apiFetch } from '../utils';
 import PropertyCard from './PropertyCard';
 import PropertyMap from './PropertyMap';
@@ -448,10 +448,59 @@ export default function DetailView({ id, listings, onUpdatePrice, onDeleteListin
               </div>
             </div>
 
-            <div className="detail-desc">
-              <h3>{t('detail.descriptionTitle')}</h3>
-              <p>{desc || t('detail.noDescription')}</p>
-            </div>
+            {/* Residential (રેસિડેન્શિયલ) Features */}
+            {(listing.bedrooms !== undefined || listing.residential?.bedrooms !== undefined || listing.halls !== undefined) && (
+              <div className="detail-residential-box">
+                <h3 className="detail-residential-title">
+                  <Home size={18} color="var(--accent)" />
+                  <span>Residential (રેસિડેન્શિયલ)</span>
+                </h3>
+                <div className="detail-residential-grid">
+                  <div className="detail-room-card">
+                    <Bed size={20} className="detail-room-icon" />
+                    <div className="detail-room-info">
+                      <span className="detail-room-count">{listing.bedrooms ?? listing.residential?.bedrooms ?? 0}</span>
+                      <span className="detail-room-name">Bedroom (બેડરૂમ)</span>
+                    </div>
+                  </div>
+                  <div className="detail-room-card">
+                    <Sofa size={20} className="detail-room-icon" />
+                    <div className="detail-room-info">
+                      <span className="detail-room-count">{listing.halls ?? listing.residential?.halls ?? 0}</span>
+                      <span className="detail-room-name">Hall - Living Room (હોલ)</span>
+                    </div>
+                  </div>
+                  <div className="detail-room-card">
+                    <CookingPot size={20} className="detail-room-icon" />
+                    <div className="detail-room-info">
+                      <span className="detail-room-count">{listing.kitchens ?? listing.residential?.kitchens ?? 0}</span>
+                      <span className="detail-room-name">Kitchen (રસોડું)</span>
+                    </div>
+                  </div>
+                  <div className="detail-room-card">
+                    <Sun size={20} className="detail-room-icon" />
+                    <div className="detail-room-info">
+                      <span className="detail-room-count">{listing.balconies ?? listing.residential?.balconies ?? 0}</span>
+                      <span className="detail-room-name">Balcony (બાલ્કની)</span>
+                    </div>
+                  </div>
+                  <div className="detail-room-card">
+                    <Bath size={20} className="detail-room-icon" />
+                    <div className="detail-room-info">
+                      <span className="detail-room-count">{listing.toilets ?? listing.residential?.toilets ?? 0}</span>
+                      <span className="detail-room-name">Toilet (ટોઇલેટ)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {desc && desc.trim().length > 0 && (
+              <div className="detail-desc">
+                <h3>{t('detail.descriptionTitle')}</h3>
+                <p>{desc}</p>
+              </div>
+            )}
 
             <div className="detail-map-box" style={{ marginTop: '2rem' }}>
               <h3 style={{ marginBottom: '1rem', fontFamily: 'var(--font-h)', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { animate } from 'animejs';
-import { Home, Building2, MapPin, Maximize2, Calendar } from 'lucide-react';
+import { Home, Building2, MapPin, Maximize2, Calendar, Bed } from 'lucide-react';
 import { formatPrice, timeAgo } from '../utils';
 
 export default function PropertyCard({ listing }) {
@@ -139,6 +139,11 @@ export default function PropertyCard({ listing }) {
           <MapPin size={14} color="var(--accent)" /> {area}, {city}
         </div>
         <div className="meta">
+          {(listing.bedrooms > 0 || listing.residential?.bedrooms > 0) && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--accent)', fontWeight: 600 }}>
+              <Bed size={13} /> {listing.bedrooms || listing.residential?.bedrooms} BHK
+            </span>
+          )}
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
             <Maximize2 size={13} /> {size} {unit}
           </span>

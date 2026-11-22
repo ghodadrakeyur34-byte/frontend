@@ -15,10 +15,11 @@
     "allPurposes": "All (Buy & Rent)",
     "search": "Search",
     "buy": "Buy",
-    "sale": "Sale",
+    "sell": "Sell",
+    "sale": "For Sale",
     "rent": "Rent",
     "wantToBuy": "Buy",
-    "wantToSell": "Sale",
+    "wantToSell": "Sell",
     "wantToRent": "Rent",
     "forSale": "For Sale",
     "forRent": "For Rent"
@@ -147,6 +148,7 @@
     "moveEarlier": "Move Earlier",
     "moveLater": "Move Later",
     "close": "Close Preview",
+    "back": "Back",
     "photoCounter": "Photo {{current}} of {{total}}"
   },
   "detail": {

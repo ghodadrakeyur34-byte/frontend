@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { getRemainingPriceChanges, canChangePrice, formatPrice } from '../utils';
 import LocationPickerMap from './LocationPickerMap';
-import DescriptionTips from './DescriptionTips';
+import ResidentialSteppers from './ResidentialSteppers';
 import PhotoPreviewModal from './PhotoPreviewModal';
 
 export default function EditListingModal({
@@ -39,6 +39,11 @@ export default function EditListingModal({
   const [propType, setPropType] = useState('house');
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
+  const [bedrooms, setBedrooms] = useState(1);
+  const [halls, setHalls] = useState(1);
+  const [kitchens, setKitchens] = useState(1);
+  const [balconies, setBalconies] = useState(0);
+  const [toilets, setToilets] = useState(1);
   const [price, setPrice] = useState('');
   const [size, setSize] = useState('');
   const [unit, setUnit] = useState('sqft');
@@ -85,6 +90,11 @@ export default function EditListingModal({
       setPropType(listing.type || 'house');
       setTitle(listing.title || '');
       setDesc(listing.desc || '');
+      setBedrooms(listing.bedrooms ?? listing.residential?.bedrooms ?? 1);
+      setHalls(listing.halls ?? listing.residential?.halls ?? 1);
+      setKitchens(listing.kitchens ?? listing.residential?.kitchens ?? 1);
+      setBalconies(listing.balconies ?? listing.residential?.balconies ?? 0);
+      setToilets(listing.toilets ?? listing.residential?.toilets ?? 1);
       setPrice(listing.price !== undefined && listing.price !== null ? String(listing.price) : '');
       setSize(listing.size !== undefined && listing.size !== null ? String(listing.size) : '');
       setUnit(listing.unit || 'sqft');
@@ -282,11 +292,31 @@ export default function EditListingModal({
         ? Number(listingCoords.lng)
         : defaultCoord.lng;
 
+    const roomSummary = [
+      bedrooms > 0 ? `${bedrooms} Bedroom` : null,
+      halls > 0 ? `${halls} Hall` : null,
+      kitchens > 0 ? `${kitchens} Kitchen` : null,
+      balconies > 0 ? `${balconies} Balcony` : null,
+      toilets > 0 ? `${toilets} Toilet` : null,
+    ].filter(Boolean).join(' • ');
+
     const updatedData = {
       purpose,
       type: propType,
       title: title.trim(),
-      desc: desc.trim(),
+      desc: desc ? desc.trim() : roomSummary,
+      bedrooms: Number(bedrooms) || 0,
+      halls: Number(halls) || 0,
+      kitchens: Number(kitchens) || 0,
+      balconies: Number(balconies) || 0,
+      toilets: Number(toilets) || 0,
+      residential: {
+        bedrooms: Number(bedrooms) || 0,
+        halls: Number(halls) || 0,
+        kitchens: Number(kitchens) || 0,
+        balconies: Number(balconies) || 0,
+        toilets: Number(toilets) || 0,
+      },
       price: parseFloat(price),
       size: parseFloat(size),
       unit,
@@ -450,22 +480,19 @@ export default function EditListingModal({
               {errors.title && <div className="error-msg">{t('sell.titleError', 'Please enter a property title')}</div>}
             </div>
 
-            {/* Description */}
-            <div className="form-group">
-              <label htmlFor="editPropDesc">{t('sell.description', 'Description')}</label>
-              <textarea
-                id="editPropDesc"
-                rows={3}
-                placeholder={t('sell.descPlaceholder', 'Provide comprehensive details about property features, nearby facilities, condition...')}
-                value={desc}
-                onChange={(e) => setDesc(e.target.value)}
-              ></textarea>
-              <DescriptionTips
-                onApplyTemplate={(tpl) =>
-                  setDesc((prev) => (prev && prev.trim() ? `${prev}\n\n${tpl}` : tpl))
-                }
+            {/* Residential (રેસિડેન્શિયલ) Steppers */}
+            {propType === 'house' && (
+              <ResidentialSteppers
+                values={{ bedrooms, halls, kitchens, balconies, toilets }}
+                onChange={(field, val) => {
+                  if (field === 'bedrooms') setBedrooms(val);
+                  if (field === 'halls') setHalls(val);
+                  if (field === 'kitchens') setKitchens(val);
+                  if (field === 'balconies') setBalconies(val);
+                  if (field === 'toilets') setToilets(val);
+                }}
               />
-            </div>
+            )}
 
             {/* Price & Size */}
             <div className="form-row">

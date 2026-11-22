@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { PlusCircle, Home, Building2, UploadCloud, CheckCircle2, Lock, LogIn, X, MapPin, KeyRound, Tag, Shield, PhoneCall, Phone, Eye, Star, RotateCw } from 'lucide-react';
 import { genId, saveCreatedListingId, formatPrice } from '../utils';
 import LocationPickerMap from './LocationPickerMap';
-import DescriptionTips from './DescriptionTips';
+import ResidentialSteppers from './ResidentialSteppers';
 import PhotoPreviewModal from './PhotoPreviewModal';
 
 export default function SellView({ onAddListing, currentUser, onRequireLogin, userLocation, onRequestLocation }) {
@@ -12,6 +12,11 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
   const [propType, setPropType] = useState('house');
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
+  const [bedrooms, setBedrooms] = useState(1);
+  const [halls, setHalls] = useState(1);
+  const [kitchens, setKitchens] = useState(1);
+  const [balconies, setBalconies] = useState(0);
+  const [toilets, setToilets] = useState(1);
   const [price, setPrice] = useState('');
   const [size, setSize] = useState('');
   const [unit, setUnit] = useState('sqft');
@@ -32,6 +37,11 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
         if (draft.propType) setPropType(draft.propType);
         if (draft.title) setTitle(draft.title);
         if (draft.desc) setDesc(draft.desc);
+        if (draft.bedrooms !== undefined) setBedrooms(draft.bedrooms);
+        if (draft.halls !== undefined) setHalls(draft.halls);
+        if (draft.kitchens !== undefined) setKitchens(draft.kitchens);
+        if (draft.balconies !== undefined) setBalconies(draft.balconies);
+        if (draft.toilets !== undefined) setToilets(draft.toilets);
         if (draft.price) setPrice(draft.price);
         if (draft.size) setSize(draft.size);
         if (draft.unit) setUnit(draft.unit);
@@ -74,6 +84,11 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
         propType,
         title,
         desc,
+        bedrooms,
+        halls,
+        kitchens,
+        balconies,
+        toilets,
         price,
         size,
         unit,
@@ -265,12 +280,32 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
       : defaultCoord.lng;
 
     const id = genId();
+    const roomSummary = [
+      bedrooms > 0 ? `${bedrooms} Bedroom` : null,
+      halls > 0 ? `${halls} Hall` : null,
+      kitchens > 0 ? `${kitchens} Kitchen` : null,
+      balconies > 0 ? `${balconies} Balcony` : null,
+      toilets > 0 ? `${toilets} Toilet` : null,
+    ].filter(Boolean).join(' • ');
+
     const newListing = {
       id,
       purpose,
       type: propType,
       title: title.trim(),
-      desc: desc.trim(),
+      desc: desc ? desc.trim() : roomSummary,
+      bedrooms: Number(bedrooms) || 0,
+      halls: Number(halls) || 0,
+      kitchens: Number(kitchens) || 0,
+      balconies: Number(balconies) || 0,
+      toilets: Number(toilets) || 0,
+      residential: {
+        bedrooms: Number(bedrooms) || 0,
+        halls: Number(halls) || 0,
+        kitchens: Number(kitchens) || 0,
+        balconies: Number(balconies) || 0,
+        toilets: Number(toilets) || 0,
+      },
       price: parseFloat(price),
       size: parseFloat(size),
       unit,
@@ -407,21 +442,19 @@ export default function SellView({ onAddListing, currentUser, onRequireLogin, us
               <div className="error-msg">{t('sell.titleError')}</div>
             </div>
 
-            {/* Description */}
-            <div className="form-group">
-              <label htmlFor="propDesc">{t('sell.description')}</label>
-              <textarea
-                id="propDesc"
-                placeholder={t('sell.descPlaceholder')}
-                value={desc}
-                onChange={(e) => setDesc(e.target.value)}
-              ></textarea>
-              <DescriptionTips
-                onApplyTemplate={(tpl) =>
-                  setDesc((prev) => (prev && prev.trim() ? `${prev}\n\n${tpl}` : tpl))
-                }
+            {/* Residential (રેસિડેન્શિયલ) Steppers */}
+            {propType === 'house' && (
+              <ResidentialSteppers
+                values={{ bedrooms, halls, kitchens, balconies, toilets }}
+                onChange={(field, val) => {
+                  if (field === 'bedrooms') setBedrooms(val);
+                  if (field === 'halls') setHalls(val);
+                  if (field === 'kitchens') setKitchens(val);
+                  if (field === 'balconies') setBalconies(val);
+                  if (field === 'toilets') setToilets(val);
+                }}
               />
-            </div>
+            )}
 
             {/* Price & Size */}
             <div className="form-row">
